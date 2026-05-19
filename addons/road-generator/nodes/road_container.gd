@@ -49,10 +49,16 @@ const RoadMaterial = preload("res://addons/road-generator/resources/road_texture
 ## If cleared, will utilize the default specificed by the [RoadManager].
 @export var material_resource: Material: set = _set_material
 
+## Override the first material slot for all of these meshes to match RoadContainer top material
+@export var material_top_meshes: Array[MeshInstance3D] = []
+
 ## Material applied to the underside of the generated meshes[br][br]
 ##
 ## If cleared, will utilize the default specificed by the [RoadManager].
 @export var material_underside: Material: set = _set_material_underside
+
+## Override the first material slot for all of these meshes to match RoadContainer underside material
+@export var material_underside_meshes: Array[MeshInstance3D] = []
 
 ## Defines the distance in meters between road loop cuts.[br][br]
 ##
@@ -390,6 +396,7 @@ func _set_thickness(value) -> void:
 
 func _set_material(value) -> void:
 	material_resource = value
+	update_material_overrides()
 	_defer_refresh_on_change()
 
 
@@ -406,6 +413,7 @@ func effective_surface_material() -> Material:
 
 func _set_material_underside(value) -> void:
 	material_underside = value
+	update_material_overrides()
 	_defer_refresh_on_change()
 
 
@@ -1051,6 +1059,14 @@ func setup_road_container():
 	if not is_instance_valid(get_manager()) and not material_resource:
 		# Assign a road material by default if there's no parent RoadManager
 		material_resource = RoadMaterial
+
+
+func update_material_overrides() -> void:
+	for _mesh in material_top_meshes:
+		if not is_instance_valid(_mesh) or not _mesh is MeshInstance3D:
+			push_warning("Non mesh assigned in RoadContainer %s: material_top_meshes " % self.name)
+			continue
+		_mesh.set_surface_override_material(0, material_resource)
 
 
 # ------------------------------------------------------------------------------
