@@ -18,7 +18,8 @@ extends Path3D
 signal on_transform
 
 const COLOR_PRIMARY := Color(0.6, 0.3, 0,3)
-const COLOR_START := Color(0.7, 0.7, 0,7)
+const COLOR_START := Color(0.1, 0.9, 0.0)
+const COLOR_END := Color(0.8, 0.1, 0.1) #Color(0.4, 0.7, 0,7)
 
 
 # ------------------------------------------------------------------------------
@@ -224,29 +225,47 @@ func _instantiate_geom() -> void:
 
 ## Generate the triangles along the path, indicating lane direction.
 func _draw_shark_fins() -> void:
-	var curve_length = curve.get_baked_length()
-	var draw_dist = 3 # draw a new triangle at this interval in m
-	var tri_count = floor(curve_length / draw_dist)
+	var curve_length := curve.get_baked_length()
+	var draw_dist := 1 # draw a new triangle at this interval in m
+	var tri_count := floor(curve_length / draw_dist)
 
 	geom.clear_surfaces()
+	geom.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in range (0, tri_count):
-		var f = i * curve_length / tri_count
-		var xf = Transform3D()
+		var f: float = i * curve_length / tri_count
+		var xf := Transform3D()
 
 		xf.origin = curve.sample_baked(f)
-		var lookat = (
+		# use sample_baked_with_rotation?
+		var lookat: Vector3 = (
 			curve.sample_baked(f + 0.1) - xf.origin
 		).normalized()
+		var upvec := curve.sample_baked_up_vector(f, true).normalized()
+		var right := lookat.cross(upvec)
 
-		geom.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 		if i == 0:
 			geom.surface_set_color(COLOR_START)
+		elif i == tri_count - 1:
+			geom.surface_set_color(COLOR_END)
 		else:
 			geom.surface_set_color(COLOR_PRIMARY)
-		geom.surface_add_vertex(xf.origin)
-		geom.surface_add_vertex(xf.origin + Vector3(0, 0.5, 0) - lookat*0.2)
-		geom.surface_add_vertex(xf.origin + lookat * 1)
-		geom.surface_end()
+		
+		# Verts
+		var pt_front_low := xf.origin + lookat * .5
+		var pt_back_right := xf.origin + right*0.2
+		var pt_back_left := xf.origin - right*0.2
+		var pt_back_high := xf.origin + upvec * 0.2
+
+		# right fin
+		geom.surface_add_vertex(pt_front_low)
+		geom.surface_add_vertex(pt_back_right)
+		geom.surface_add_vertex(pt_back_high)
+		# left fin
+		geom.surface_add_vertex(pt_front_low)
+		geom.surface_add_vertex(pt_back_high)
+		geom.surface_add_vertex(pt_back_left)
+
+	geom.surface_end()
 
 
 func rebuild_geom() -> void:
