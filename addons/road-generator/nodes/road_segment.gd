@@ -401,6 +401,8 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 				ln_child.add_to_group(manager.ai_lane_group)
 			ln_child.set_meta("_edit_lock_", true)
 			ln_child.auto_free_vehicles = container.auto_free_vehicles
+		elif is_instance_valid(ln_child.owner):
+			continue # do not auto update editor visible RoadLanes
 		else:
 			ln_child.curve.clear_points()
 		var new_ln:RoadLane = ln_child
@@ -457,7 +459,7 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 		lanes_added += 1
 		last_ln = new_ln # For the next loop iteration.
 		last_ln_reverse = new_ln_reverse
-	clear_lane_segments(active_lanes)
+	clear_lane_segments(active_lanes) # input is the *ignore* list
 
 	return lanes_added > 0
 
@@ -640,7 +642,7 @@ func get_lanes() -> Array:
 ## Remove all RoadLanes attached to this RoadSegment
 func clear_lane_segments(ignore_list: Array = []) -> void:
 	for l: RoadLane in self.get_lanes():
-		if l in ignore_list:
+		if l in ignore_list or is_instance_valid(l.owner):
 			return
 		var ln:RoadLane = l.get_node_or_null(l.lane_next)
 		if ln && ln.lane_prior == ln.get_path_to(l):

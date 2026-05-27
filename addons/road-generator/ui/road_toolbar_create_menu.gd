@@ -10,6 +10,7 @@ signal create_lane_agent
 signal create_terrain3d_connector
 signal create_2x2_road
 signal export_mesh
+signal bake_road_lanes
 signal feedback_pressed
 signal report_issue_pressed
 
@@ -27,6 +28,7 @@ enum CreateMenu {
 	TERRAIN3D_CONNECTOR,
 	TWO_X_TWO,
 	EXPORT_MESH,
+	BAKE_ROAD_LANES,
 	FEEDBACK,
 	REPORT_ISSUE
 }
@@ -128,7 +130,6 @@ func on_toolbar_show(primary_sel: Node) -> void:
 	idx += 1
 
 	pup.add_separator()
-	idx += 1
 
 	pup.add_item("2x2 road", CreateMenu.TWO_X_TWO)
 	pup.set_item_tooltip(idx, "Adds a segment of road with 2 lanes each way")
@@ -143,11 +144,16 @@ func on_toolbar_show(primary_sel: Node) -> void:
 	idx += 1
 
 	pup.add_separator()
-	idx += 1
 
 	pup.add_item("Export RoadContainer", CreateMenu.EXPORT_MESH)
 	if not primary_sel is RoadContainer:
 		pup.set_item_disabled(idx, true)
+	idx += 1
+	
+	pup.add_item("Bake RoadLanes", CreateMenu.BAKE_ROAD_LANES)
+	if not primary_sel is RoadContainer or not primary_sel.generate_ai_lanes:
+		pup.set_item_disabled(idx, true)
+	idx += 1
 	
 	pup.add_separator()
 	pup.add_item("Report issue", CreateMenu.REPORT_ISSUE)
@@ -176,6 +182,8 @@ func _create_menu_item_clicked(id: int) -> void:
 			create_2x2_road.emit()
 		CreateMenu.EXPORT_MESH:
 			export_mesh.emit()
+		CreateMenu.BAKE_ROAD_LANES:
+			bake_road_lanes.emit()
 		CreateMenu.FEEDBACK:
 			feedback_pressed.emit()
 		CreateMenu.REPORT_ISSUE:

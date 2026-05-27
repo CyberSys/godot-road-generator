@@ -404,6 +404,7 @@ func _show_road_toolbar() -> void:
 
 		# Aditional tools
 		_road_toolbar.create_menu.export_mesh.connect(_export_mesh_modal)
+		_road_toolbar.create_menu.bake_road_lanes.connect(bake_roadlanes_selected)
 		_road_toolbar.create_menu.feedback_pressed.connect(_on_feedback_pressed)
 		_road_toolbar.create_menu.report_issue_pressed.connect(_on_report_issue_pressed)
 		_road_toolbar.create_menu.create_terrain3d_connector.connect(add_and_configure_terrain3d_connector)
@@ -429,6 +430,7 @@ func _hide_road_toolbar() -> void:
 		
 		# Aditional tools
 		_road_toolbar.create_menu.export_mesh.disconnect(_export_mesh_modal)
+		_road_toolbar.create_menu.bake_road_lanes.disconnect(bake_roadlanes_selected)
 		_road_toolbar.create_menu.feedback_pressed.disconnect(_on_feedback_pressed)
 		_road_toolbar.create_menu.report_issue_pressed.disconnect(_on_report_issue_pressed)
 		_road_toolbar.create_menu.create_terrain3d_connector.disconnect(add_and_configure_terrain3d_connector)
@@ -1343,6 +1345,47 @@ func delete_roadcontainer(container: RoadContainer) -> void:
 		if is_instance_valid(mgr):
 			undo_redo.add_do_method(self, "set_selection", mgr)
 	undo_redo.add_undo_method(self, "set_selection_list", editor_selected)
+	undo_redo.commit_action()
+
+
+func bake_roadlanes_selected() -> void:
+	var sel = get_selected_node()
+	if sel is RoadContainer:
+		bake_roadlanes_action(sel.get_roadpoints() + sel.get_intersections())
+		return
+	elif sel is RoadGraphNode:
+		bake_roadlanes_action([sel])
+
+
+## Takes any scene-hidden, auto-generated AI lanes and directly add them to scene.\n\n
+##
+## Useful for hand modifying or custom tuning.
+## graph_nodes: Should be RoadGraphNode but can't type due to lack of covariants
+func bake_roadlanes_action(graph_nodes: Array) -> void:
+	var undo_redo = get_undo_redo()
+	undo_redo.create_action("Bake RoadLanes")
+	var conts: Array[RoadContainer] = []
+	
+	for parent in graph_nodes:
+		if not parent.container in conts:
+			conts.append(parent.container)
+		for _ch in parent.get_children(false):
+			var rl: RoadLane = _ch as RoadLane
+			if not is_instance_valid(rl):
+				continue
+			# Assign to own to be visible in editor and save to file, container
+			# will then ignore when auto refreshing/deleting
+			undo_redo.add_do_method(rl, "set_meta", "_edit_lock_", false)
+			undo_redo.add_undo_method(rl, "set_meta", "_edit_lock_", true)
+			undo_redo.add_do_property(rl, "owner", parent.owner)
+			undo_redo.add_undo_property(rl, "owner", rl.owner)
+
+	for _cont in conts:
+		# Necessary to ensure the scenetree updates, otherwise won't appear
+		# until they switch away and back to this scene
+		undo_redo.add_do_method(_cont, "_defer_refresh_on_change")
+		undo_redo.add_undo_method(_cont, "_defer_refresh_on_change")
+
 	undo_redo.commit_action()
 
 
