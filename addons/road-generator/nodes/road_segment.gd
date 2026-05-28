@@ -388,6 +388,7 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 		# TODO: Check for existing lanes and reuse (but also clean up if needed)
 		# var ln_child = self.get_node_or_null(ln_name)
 		var ln_child = null
+		var is_user_editable := false
 		ln_child = _par.get_node_or_null(ln_name)
 		if not is_instance_valid(ln_child) or not ln_child is RoadLane:
 			ln_child = RoadLane.new()
@@ -402,11 +403,7 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 			ln_child.set_meta("_edit_lock_", true)
 			ln_child.auto_free_vehicles = container.auto_free_vehicles
 		elif is_instance_valid(ln_child.owner):
-			# Sill could be nice to auto-connect adjacent nodes
-			last_ln = null
-			last_ln_reverse = false
-			lanes_added += 1
-			continue # do not auto update editor visible RoadLanes
+			is_user_editable = true
 		else:
 			ln_child.curve.clear_points()
 		var new_ln:RoadLane = ln_child
@@ -436,18 +433,25 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 		# TODO(#46): Swtich to re-sampling and adding more points following the
 		# curve along from the parent path generator, including its use of ease
 		# in and out at the edges.
-		offset_curve(self, new_ln, in_offset, out_offset, start_point, end_point, new_ln_reverse)
+		if not is_user_editable:
+			offset_curve(self, new_ln, in_offset, out_offset, start_point, end_point, new_ln_reverse)
 
 		# Visually display if indicated, and not mid transform (low_poly)
-		if low_poly:
+		if is_user_editable:
+			# Never deleted anyways
+			new_ln.draw_in_editor = container.draw_lanes_editor
+		elif low_poly:
 			new_ln.draw_in_editor = false
 		else:
 			new_ln.draw_in_editor = container.draw_lanes_editor
-		new_ln.draw_in_game = container.draw_lanes_game
-		new_ln.refresh_geom = true
-		new_ln.rebuild_geom()
+		
+		if not is_user_editable:
+			new_ln.draw_in_game = container.draw_lanes_game
+			new_ln.refresh_geom = true
+			new_ln.rebuild_geom()
 
 		# Update lane connectedness for left/right lane connections.
+		# Attempt to do so for user editable lanes
 		if not last_ln == null and last_ln_reverse == new_ln_reverse:
 			# If the last lane and this one are facing the same way, then they
 			# should be adjacent for lane changing. Which lane (left/right) is
@@ -647,13 +651,20 @@ func get_lanes() -> Array:
 func clear_lane_segments(ignore_list: Array = []) -> void:
 	for l: RoadLane in self.get_lanes():
 		if l in ignore_list or is_instance_valid(l.owner):
-			return
+			continue
 		var ln:RoadLane = l.get_node_or_null(l.lane_next)
 		if ln && ln.lane_prior == ln.get_path_to(l):
 			ln.lane_prior = NodePath("")
 		var lp:RoadLane = l.get_node_or_null(l.lane_prior)
 		if lp && lp.lane_next == lp.get_path_to(l):
 			lp.lane_next = NodePath("")
+		
+		var ll:RoadLane = l.get_node_or_null(l.lane_left)
+		if ll && ll.lane_right == ll.get_path_to(l):
+			ll.lane_right = NodePath("")
+		var lr:RoadLane = l.get_node_or_null(l.lane_right)
+		if lr && lr.lane_left == lr.get_path_to(l):
+			lr.lane_left = NodePath("")
 		l.queue_free()
 
 
