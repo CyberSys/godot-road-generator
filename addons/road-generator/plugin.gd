@@ -1375,7 +1375,7 @@ func bake_roadlanes_action(graph_nodes: Array) -> void:
 				continue
 			# Assign to own to be visible in editor and save to file, container
 			# will then ignore when auto refreshing/deleting
-			undo_redo.add_do_method(rl, "set_meta", "_edit_lock_", false)
+			undo_redo.add_do_method(rl, "remove_meta", "_edit_lock_")
 			undo_redo.add_undo_method(rl, "set_meta", "_edit_lock_", true)
 			undo_redo.add_do_property(rl, "owner", parent.owner)
 			undo_redo.add_undo_property(rl, "owner", rl.owner)

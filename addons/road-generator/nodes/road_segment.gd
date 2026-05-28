@@ -402,6 +402,10 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 			ln_child.set_meta("_edit_lock_", true)
 			ln_child.auto_free_vehicles = container.auto_free_vehicles
 		elif is_instance_valid(ln_child.owner):
+			# Sill could be nice to auto-connect adjacent nodes
+			last_ln = null
+			last_ln_reverse = false
+			lanes_added += 1
 			continue # do not auto update editor visible RoadLanes
 		else:
 			ln_child.curve.clear_points()
