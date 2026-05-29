@@ -1022,6 +1022,9 @@ func update_lane_seg_connections():
 		for prior_ln in prior_seg_lanes:
 			# prior lane be set to track to a next lane
 			for next_ln in next_seg_lanes:
+				if is_instance_valid(next_ln.owner):
+					# Don't auto update paths owned by the editor
+					continue
 				if prior_ln.lane_next_tag == next_ln.lane_prior_tag:
 					# TODO: When directionality is made consistent, we should no longer
 					# need to invert the direction assignment here.
