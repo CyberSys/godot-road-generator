@@ -26,7 +26,7 @@ func _parse_category(object: Object, category: String) -> void:
 	panel_instance.call_deferred("update_selected_road_container", object)
 	add_custom_control(panel_instance)
 	panel_instance.export_gltf.connect(_editor_plugin._export_mesh_modal)
-	panel_instance.bake_roadlanes.connect(_editor_plugin.bake_roadlanes_action)
+	panel_instance.make_roadlanes_editable.connect(_editor_plugin.make_roadlanes_editable_action)
 
 
 func set_edi(value):

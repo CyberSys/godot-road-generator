@@ -30,4 +30,4 @@ custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 
 [connection signal="pressed" from="export_gltf" to="." method="_on_export_gltf_pressed"]
-[connection signal="pressed" from="bake_roadlanes" to="." method="_on_bake_roadlanes_pressed"]
+[connection signal="pressed" from="bake_roadlanes" to="." method="_on_make_roadlanes_editbale_pressed"]
