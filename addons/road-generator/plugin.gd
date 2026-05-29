@@ -404,6 +404,7 @@ func _show_road_toolbar() -> void:
 
 		# Aditional tools
 		_road_toolbar.create_menu.export_mesh.connect(_export_mesh_modal)
+		_road_toolbar.create_menu.make_lanes_editable.connect(make_roadlanes_editable_from_selection)
 		_road_toolbar.create_menu.feedback_pressed.connect(_on_feedback_pressed)
 		_road_toolbar.create_menu.report_issue_pressed.connect(_on_report_issue_pressed)
 		_road_toolbar.create_menu.create_terrain3d_connector.connect(add_and_configure_terrain3d_connector)
@@ -429,6 +430,7 @@ func _hide_road_toolbar() -> void:
 		
 		# Aditional tools
 		_road_toolbar.create_menu.export_mesh.disconnect(_export_mesh_modal)
+		_road_toolbar.create_menu.make_lanes_editable.disconnect(make_roadlanes_editable_from_selection)
 		_road_toolbar.create_menu.feedback_pressed.disconnect(_on_feedback_pressed)
 		_road_toolbar.create_menu.report_issue_pressed.disconnect(_on_report_issue_pressed)
 		_road_toolbar.create_menu.create_terrain3d_connector.disconnect(add_and_configure_terrain3d_connector)
@@ -1343,6 +1345,53 @@ func delete_roadcontainer(container: RoadContainer) -> void:
 		if is_instance_valid(mgr):
 			undo_redo.add_do_method(self, "set_selection", mgr)
 	undo_redo.add_undo_method(self, "set_selection_list", editor_selected)
+	undo_redo.commit_action()
+
+
+## Makes RoadLanes editable and saved to the scene tree based on selected node.
+func make_roadlanes_editable_from_selection() -> void:
+	var sel = get_selected_node()
+	if sel is RoadContainer:
+		make_roadlanes_editable_action(sel.get_roadpoints() + sel.get_intersections())
+	elif sel is RoadGraphNode:
+		make_roadlanes_editable_action([sel])
+
+
+## Takes any scene-hidden, auto-generated AI lanes and directly add them to scene.\n\n
+##
+## Useful for hand modifying or custom tuning.
+## graph_nodes: Should be RoadGraphNode but can't type due to lack of covariants
+func make_roadlanes_editable_action(graph_nodes: Array) -> void:
+	var undo_redo = get_undo_redo()
+	undo_redo.create_action("Make RoadLanes Editable")
+	
+	for parent in graph_nodes:
+		var segs: Array[RoadSegment] = []
+		for _ch in parent.get_children(false):
+			if _ch is RoadSegment:
+				segs.append(_ch)
+				continue
+			var rl: RoadLane = _ch as RoadLane
+			if not is_instance_valid(rl):
+				continue
+			if is_instance_valid(rl.owner):
+				# Already was made real before, doing it again would cause the
+				# editor lock to appear on undo.
+				continue
+			# Assign to own to be visible in editor and save to file, container
+			# will then ignore when auto refreshing/deleting
+			undo_redo.add_do_method(rl, "remove_meta", "_edit_lock_")
+			undo_redo.add_undo_method(rl, "set_meta", "_edit_lock_", true)
+			undo_redo.add_do_property(rl, "owner", parent.owner)
+			undo_redo.add_undo_property(rl, "owner", rl.owner)
+			
+		# Instead of refreshing the whole container, we can just force the
+		# lanes to regenerate.
+		for seg in segs:
+			undo_redo.add_do_method(seg, "generate_lane_segments")
+			undo_redo.add_undo_method(seg, "generate_lane_segments")
+		# TODO: Add the equivalent path for populating RoadLanes on intersections
+
 	undo_redo.commit_action()
 
 
