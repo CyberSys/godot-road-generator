@@ -1353,7 +1353,6 @@ func make_roadlanes_editable_from_selection() -> void:
 	var sel = get_selected_node()
 	if sel is RoadContainer:
 		make_roadlanes_editable_action(sel.get_roadpoints() + sel.get_intersections())
-		return
 	elif sel is RoadGraphNode:
 		make_roadlanes_editable_action([sel])
 
@@ -1365,12 +1364,13 @@ func make_roadlanes_editable_from_selection() -> void:
 func make_roadlanes_editable_action(graph_nodes: Array) -> void:
 	var undo_redo = get_undo_redo()
 	undo_redo.create_action("Make RoadLanes Editable")
-	var conts: Array[RoadContainer] = []
 	
 	for parent in graph_nodes:
-		if not parent.container in conts:
-			conts.append(parent.container)
+		var segs: Array[RoadSegment] = []
 		for _ch in parent.get_children(false):
+			if _ch is RoadSegment:
+				segs.append(_ch)
+				continue
 			var rl: RoadLane = _ch as RoadLane
 			if not is_instance_valid(rl):
 				continue
@@ -1384,12 +1384,13 @@ func make_roadlanes_editable_action(graph_nodes: Array) -> void:
 			undo_redo.add_undo_method(rl, "set_meta", "_edit_lock_", true)
 			undo_redo.add_do_property(rl, "owner", parent.owner)
 			undo_redo.add_undo_property(rl, "owner", rl.owner)
-
-	for _cont in conts:
-		# Necessary to ensure the scenetree updates, otherwise won't appear
-		# until they switch away and back to this scene
-		undo_redo.add_do_method(_cont, "_defer_refresh_on_change")
-		undo_redo.add_undo_method(_cont, "_defer_refresh_on_change")
+			
+		# Instead of refreshing the whole container, we can just force the
+		# lanes to regenerate.
+		for seg in segs:
+			undo_redo.add_do_method(seg, "generate_lane_segments")
+			undo_redo.add_undo_method(seg, "generate_lane_segments")
+		# TODO: Add the equivalent path for populating RoadLanes on intersections
 
 	undo_redo.commit_action()
 
