@@ -441,8 +441,7 @@ func _set_draw_lanes_editor(value: bool):
 	for seg in get_segments():
 		if not generate_ai_lanes:
 			seg.clear_lane_segments()
-		else:
-			seg.update_lane_visibility()
+		seg.update_lane_visibility() # could still have some manually added
 
 
 func _get_draw_lanes_editor() -> bool:
@@ -1235,8 +1234,8 @@ func rebuild_segments(clear_existing := false):
 			signal_rebuilt.append(inter)
 
 	# Once all RoadSegments (and their lanes) exist, update next/prior lanes.
-	if generate_ai_lanes:
-		update_lane_seg_connections()
+	# Update even if generate_ai_lanes off, could have added manually / made editable
+	update_lane_seg_connections()
 	if debug:
 		print_debug("Road segs rebuilt: ", rebuilt)
 	if signal_rebuilt.size() > 0:

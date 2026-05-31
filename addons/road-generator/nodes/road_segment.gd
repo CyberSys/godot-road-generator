@@ -391,23 +391,30 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 		var is_user_editable := false
 		ln_child = _par.get_node_or_null(ln_name)
 		if not is_instance_valid(ln_child) or not ln_child is RoadLane:
-			ln_child = RoadLane.new()
-			_par.add_child(ln_child)
-			if container.debug_scene_visible:
-				ln_child.owner = container.get_owner()
-
-			if container.ai_lane_group != "":
-				ln_child.add_to_group(container.ai_lane_group)
-			elif is_instance_valid(manager) and manager.ai_lane_group != "":
-				ln_child.add_to_group(manager.ai_lane_group)
-			ln_child.set_meta("_edit_lock_", true)
-			ln_child.auto_free_vehicles = container.auto_free_vehicles
+			if container.generate_ai_lanes:
+				ln_child = RoadLane.new()
+				_par.add_child(ln_child)
+				if container.debug_scene_visible:
+					ln_child.owner = container.get_owner()
+				ln_child.set_meta("_edit_lock_", true)
+				ln_child.auto_free_vehicles = container.auto_free_vehicles
+			else:
+				lanes_added += 1
+				last_ln = null # For the next loop iteration.
+				# last_ln_reverse = new_ln_reverse
+				continue # increment counts??
 		elif is_instance_valid(ln_child.owner):
 			is_user_editable = true
 		else:
 			ln_child.curve.clear_points()
 		var new_ln:RoadLane = ln_child
 		active_lanes.append(new_ln)
+		
+		if container.ai_lane_group != "":
+			# check not already in the group
+			ln_child.add_to_group(container.ai_lane_group)
+		elif is_instance_valid(manager) and manager.ai_lane_group != "":
+			ln_child.add_to_group(manager.ai_lane_group)
 
 		# Assign the in and out lane tags, to help with connecting to other
 		# road lanes later (handled by RoadContainer).
@@ -438,17 +445,18 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 
 		# Visually display if indicated, and not mid transform (low_poly)
 		if is_user_editable:
-			# Never deleted anyways
+			# Never deleted anyways, so always display
 			new_ln.draw_in_editor = container.draw_lanes_editor
+			new_ln.draw_in_game = container.draw_lanes_game
 		elif low_poly:
 			new_ln.draw_in_editor = false
+			new_ln.draw_in_game = false
 		else:
 			new_ln.draw_in_editor = container.draw_lanes_editor
-		
-		if not is_user_editable:
 			new_ln.draw_in_game = container.draw_lanes_game
-			new_ln.refresh_geom = true
-			new_ln.rebuild_geom()
+		
+		new_ln.refresh_geom = true
+		new_ln.rebuild_geom()
 
 		# Update lane connectedness for left/right lane connections.
 		# Attempt to do so for user editable lanes
@@ -725,10 +733,11 @@ func _rebuild():
 	else:
 		clear_edge_curves()
 
-	if container.generate_ai_lanes:
-		generate_lane_segments()
-	else:
+	if not container.generate_ai_lanes:
 		clear_lane_segments()
+	# Always call genreate lanes, in case there are manual lanes to run connections on
+	# Internally it repsects generate_ai_lanes.
+	generate_lane_segments()
 
 
 func _update_curve():

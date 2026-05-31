@@ -103,6 +103,8 @@ func assign_lane(new_lane:RoadLane) -> void:
 	var _initial_lane = unassign_lane()
 	current_lane = new_lane
 	emit_signal("on_lane_changed", _initial_lane)
+	if DEBUG_OUT:
+		print("Assigned new lane: %s" % new_lane.get_path())
 
 
 func unassign_lane() -> RoadLane:
@@ -243,6 +245,9 @@ func _move_along_lane(move_distance: float, update_lane: bool = true) -> Vector3
 	if check_next_offset > lane_length:
 		while check_next_offset > lane_length: # Target point is past the end of this curve
 			var check_lane = _update_lane.get_node_or_null( _update_lane.lane_next )
+			if DEBUG_OUT:
+				print_debug("Agent wrapping to next, path %s vs node %s" % [
+					_update_lane.lane_next, check_lane])
 			if ! is_instance_valid(check_lane):
 				distance_left = check_next_offset - lane_length
 				check_next_offset = lane_length
@@ -253,6 +258,9 @@ func _move_along_lane(move_distance: float, update_lane: bool = true) -> Vector3
 	else:
 		while check_next_offset < 0:
 			var check_lane = _update_lane.get_node_or_null( _update_lane.lane_prior )
+			if DEBUG_OUT:
+				print_debug("Agent wrapping to prior, path %s vs node %s" % [
+					_update_lane.lane_prior, check_lane])
 			if ! is_instance_valid(check_lane):
 				distance_left = check_next_offset - init_offset
 				check_next_offset = 0
