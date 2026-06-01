@@ -411,6 +411,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.24063, 0, -30.223)
 [node name="Dynamic" type="Node3D" parent="RoadManager/ConnectedPrefab"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -340, 0, 0)
 script = ExtResource("2_pgtsv")
+material_resource = ExtResource("6_x20i1")
 use_lowpoly_preview = true
 generate_ai_lanes = true
 edge_containers = Array[NodePath]([NodePath("../3way_2x2"), NodePath("../3way_2x2"), NodePath("../roundabout_2x2"), NodePath("../3way_2x3"), NodePath("../3way_2x3"), NodePath("../roundabout_2x2")])
@@ -692,6 +693,7 @@ prior_pt_init = NodePath("../RP_003")
 [node name="DecorationsDemo" type="Node3D" parent="RoadManager"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 600, 0, 0)
 script = ExtResource("2_pgtsv")
+material_resource = ExtResource("6_x20i1")
 use_lowpoly_preview = true
 create_edge_curves = true
 edge_containers = Array[NodePath]([NodePath(""), NodePath("")])

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dl2ggbjespgv8"]
+[gd_scene load_steps=13 format=3 uid="uid://dl2ggbjespgv8"]
 
 [ext_resource type="Script" uid="uid://cph7euje06kel" path="res://addons/road-generator/nodes/road_container.gd" id="1_pqelq"]
 [ext_resource type="Material" uid="uid://dpashsuk5lr4x" path="res://addons/road-generator/resources/road_texture.material" id="2_ber5t"]
@@ -6,9 +6,37 @@
 [ext_resource type="Script" uid="uid://c0mi21wvn0ko0" path="res://addons/road-generator/nodes/road_lane.gd" id="4_smvvh"]
 [ext_resource type="PackedScene" uid="uid://dhh0iyxhd5n8y" path="res://addons/road-generator/custom_containers/3way_1x1.glb" id="5_pqelq"]
 
+[sub_resource type="Curve3D" id="Curve3D_pqelq"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 8, -2, 0, 0, 0, 0, -8, 0, 0, 32, -2, 0, 32),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve3D_ber5t"]
+_data = {
+"points": PackedVector3Array(0, 0, 32, 0, 0, -8, 2, 0, 32, 0, 0, 8, 0, 0, 0, 2, 0, 0),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
 [sub_resource type="Curve3D" id="Curve3D_tt3ky"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -3.65163, 0, 4.70499, 3.65163, 0, -4.70499, -1.09681, 0, -2.79526, 0, 0, 0, 0, 0, 0, 2, 0, -16),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+
+[sub_resource type="Curve3D" id="Curve3D_k0c2a"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -3.652, 0, -4.705, 3.652, 0, 4.705, -4.78278, 0, 5.80704, 0, 0, 0, 0, 0, 0, -2, 0, 16),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+
+[sub_resource type="Curve3D" id="Curve3D_smvvh"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -2, 0, -16, 3.652, 0, -4.705, -3.652, 0, 4.705, -4.783, 0, -5.807, 0, 0, 0, 0, 0, 0, -16, 0, -2),
 "tilts": PackedFloat32Array(0, 0, 0)
 }
 point_count = 3
@@ -27,9 +55,9 @@ data = PackedVector3Array(-6.0012, 0, -12.0006, -4.0012, 0, -16.0012, -4.0012, 0
 script = ExtResource("1_pqelq")
 create_geo = false
 material_resource = ExtResource("2_ber5t")
-use_lowpoly_preview = true
 material_top_meshes = [NodePath("3way_1x1_exp/3way_1x1")]
-generate_ai_lanes = true
+use_lowpoly_preview = true
+draw_lanes_editor = true
 edge_containers = Array[NodePath]([NodePath(""), NodePath(""), NodePath("")])
 edge_rp_targets = Array[NodePath]([NodePath(""), NodePath(""), NodePath("")])
 edge_rp_target_dirs = Array[int]([-1, -1, -1])
@@ -44,6 +72,22 @@ lanes = Array[int]([5, 5])
 prior_mag = 8.0
 next_mag = 8.0
 next_pt_init = NodePath("../RP_002")
+
+[node name="pR0_nR0" type="Path3D" parent="RP_001"]
+curve = SubResource("Curve3D_pqelq")
+script = ExtResource("4_smvvh")
+lane_right = NodePath("../../RP_003/W0S0")
+lane_next_tag = "R0"
+lane_prior_tag = "R0"
+draw_in_editor = true
+
+[node name="pF0_nF0" type="Path3D" parent="RP_001"]
+curve = SubResource("Curve3D_ber5t")
+script = ExtResource("4_smvvh")
+lane_left = NodePath("../../RP_003/S0W0")
+lane_next_tag = "F0"
+lane_prior_tag = "F0"
+draw_in_editor = true
 
 [node name="RP_002" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16)
@@ -62,6 +106,38 @@ lanes = Array[int]([5, 5])
 next_mag = 3.31814
 next_pt_init = NodePath("../RP_004")
 
+[node name="W0N0" type="Path3D" parent="RP_003"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
+curve = SubResource("Curve3D_tt3ky")
+script = ExtResource("4_smvvh")
+lane_right = NodePath("../pF0_nF0")
+draw_in_editor = true
+
+[node name="pF0_nF0" type="Path3D" parent="RP_003"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
+curve = SubResource("Curve3D_k0c2a")
+script = ExtResource("4_smvvh")
+lane_left = NodePath("../W0N0")
+lane_next_tag = "F0"
+lane_prior_tag = "F0"
+draw_in_editor = true
+
+[node name="W0S0" type="Path3D" parent="RP_003"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
+curve = SubResource("Curve3D_smvvh")
+script = ExtResource("4_smvvh")
+lane_left = NodePath("../../RP_001/pR0_nR0")
+lane_next_tag = "F0"
+lane_prior_tag = "F0"
+draw_in_editor = true
+
+[node name="S0W0" type="Path3D" parent="RP_003"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.99382e-07, 0, 16)
+curve = SubResource("Curve3D_jw7wf")
+script = ExtResource("4_smvvh")
+lane_right = NodePath("../../RP_001/pF0_nF0")
+draw_in_editor = true
+
 [node name="RP_004" type="Node3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.0117083, 0, 0)
 script = ExtResource("3_k0c2a")
@@ -71,15 +147,6 @@ terminated = true
 prior_mag = 4.81177
 next_mag = 4.81177
 prior_pt_init = NodePath("../RP_003")
-
-[node name="W0N0" type="Path3D" parent="." groups=["road_lanes"]]
-curve = SubResource("Curve3D_tt3ky")
-script = ExtResource("4_smvvh")
-
-[node name="S0W0" type="Path3D" parent="." groups=["road_lanes"]]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
-curve = SubResource("Curve3D_jw7wf")
-script = ExtResource("4_smvvh")
 
 [node name="3way_1x1_exp" parent="." instance=ExtResource("5_pqelq")]
 
