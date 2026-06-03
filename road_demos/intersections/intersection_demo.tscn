@@ -1,10 +1,11 @@
-[gd_scene load_steps=21 format=3 uid="uid://005t8goo85uh"]
+[gd_scene load_steps=22 format=3 uid="uid://005t8goo85uh"]
 
 [ext_resource type="Script" uid="uid://cph7euje06kel" path="res://addons/road-generator/nodes/road_container.gd" id="1"]
 [ext_resource type="Theme" uid="uid://bos557pj10dx8" path="res://road_demos/demo_resources/demo_ui.theme" id="1_8fvl2"]
 [ext_resource type="PackedScene" uid="uid://de542wwer561r" path="res://road_demos/demo_resources/demo_ui_common.tscn" id="1_jtmt7"]
 [ext_resource type="PackedScene" uid="uid://b63rq4jeigte2" path="res://addons/road-generator/custom_containers/4way_2x2.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://cbw5410mk0wgq" path="res://addons/road-generator/custom_containers/highway_offramp.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://7fuf8ius41m3" path="res://road_demos/demo_resources/road_lane_debug.tscn" id="3_uq04g"]
 [ext_resource type="Material" uid="uid://dpashsuk5lr4x" path="res://addons/road-generator/resources/road_texture.material" id="4"]
 [ext_resource type="Script" uid="uid://bxp3i4cnonh8y" path="res://addons/road-generator/nodes/road_manager.gd" id="5"]
 [ext_resource type="PackedScene" uid="uid://dfggtpn3gyrn0" path="res://addons/road-generator/custom_containers/3way_2x2.tscn" id="7"]
@@ -71,6 +72,14 @@ text = "up/down arrow to move
 left/right to change lane"
 horizontal_alignment = 1
 
+[node name="spacer" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="RoadLaneDebug" parent="UI/VBoxContainer" node_paths=PackedStringArray("actor") instance=ExtResource("3_uq04g")]
+layout_mode = 2
+actor = NodePath("../../../RoadManager/vehicles/Player")
+
 [node name="ground" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.2925, -0.1, -27.5207)
 mesh = SubResource("1")
@@ -84,7 +93,7 @@ script = ExtResource("5")
 [node name="vehicles" type="Node3D" parent="RoadManager"]
 
 [node name="Player" parent="RoadManager/vehicles" instance=ExtResource("11")]
-transform = Transform3D(0.979375, 0, -0.202052, 0, 1, 0, 0.202052, 0, 0.979375, -2.4612, 5.14984e-05, -122.178)
+transform = Transform3D(0.979375, 0, -0.202052, 0, 1, 0, 0.202052, 0, 0.979375, 37.4901, 5.14984e-05, -111.389)
 drive_state = 2
 acceleration = 3
 target_speed = 77
@@ -686,6 +695,7 @@ edge_rp_target_dirs = Array[int]([1, 1, 0, 0])
 [node name="Road_001" type="Node3D" parent="RoadManager"]
 transform = Transform3D(-0.628819, 0, -0.777552, 0, 1, 0, 0.777552, 0, -0.628819, 69.5633, 7.6294e-06, -261.723)
 script = ExtResource("1")
+material_resource = ExtResource("4")
 use_lowpoly_preview = true
 generate_ai_lanes = true
 draw_lanes_editor = true
@@ -747,6 +757,7 @@ edge_rp_target_dirs = Array[int]([1, 0, 0])
 [node name="Road_002" type="Node3D" parent="RoadManager"]
 transform = Transform3D(0.738844, 0, -0.673877, 0, 1, 0, 0.673877, 0, 0.738844, -31.774, 0, -178.19)
 script = ExtResource("1")
+material_resource = ExtResource("4")
 use_lowpoly_preview = true
 generate_ai_lanes = true
 draw_lanes_editor = true
@@ -776,6 +787,7 @@ prior_pt_init = NodePath("../RP_EXIT_D")
 [node name="Road_003" type="Node3D" parent="RoadManager"]
 transform = Transform3D(0.673877, 0, 0.738844, 0, 1, 0, -0.738844, 0, 0.673877, 24.7349, 0, -180.788)
 script = ExtResource("1")
+material_resource = ExtResource("4")
 use_lowpoly_preview = true
 generate_ai_lanes = true
 draw_lanes_editor = true
@@ -806,6 +818,7 @@ prior_pt_init = NodePath("../RP_004")
 [node name="Road_004" type="Node3D" parent="RoadManager"]
 transform = Transform3D(0.738844, 0, -0.673877, 0, 1, 0, 0.673877, 0, 0.738844, -18.3933, 0, -133.502)
 script = ExtResource("1")
+material_resource = ExtResource("4")
 use_lowpoly_preview = true
 generate_ai_lanes = true
 draw_lanes_editor = true
@@ -836,6 +849,7 @@ prior_pt_init = NodePath("../RP_EXIT_B")
 [node name="Road_005" type="Node3D" parent="RoadManager"]
 transform = Transform3D(0.298607, 0, -0.954376, 0, 1, 0, 0.954376, 0, 0.298608, 5.88487, 7.6294e-06, -218.114)
 script = ExtResource("1")
+material_resource = ExtResource("4")
 use_lowpoly_preview = true
 generate_ai_lanes = true
 draw_lanes_editor = true
