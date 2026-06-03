@@ -401,8 +401,7 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 			else:
 				lanes_added += 1
 				last_ln = null # For the next loop iteration.
-				# last_ln_reverse = new_ln_reverse
-				continue # increment counts??
+				continue
 		elif is_instance_valid(ln_child.owner):
 			is_user_editable = true
 		else:

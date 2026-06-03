@@ -22,32 +22,12 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(agent):
-		#set_no_agent()
 		return
 	var clane:RoadLane = agent.current_lane
 	if not is_instance_valid(clane):
-		#set_no_agent()
 		return
-	set_has_agent()
 	
 	lbl_left.text = "Left" if clane.lane_left else "-"
 	lbl_right.text = "Right" if clane.lane_right else "-"
 	lbl_next.text = "Next" if clane.lane_next else "-"
 	lbl_prior.text = "Prior" if clane.lane_prior else "-"
-
-
-func set_no_agent() -> void:
-	lbl_no_agent.show()
-	lbl_next.hide()
-	lbl_left.hide()
-	lbl_right.hide()
-	lbl_prior.hide()
-
-
-func set_has_agent() -> void:
-	lbl_no_agent.hide()
-	lbl_next.show()
-	lbl_left.show()
-	lbl_right.show()
-	lbl_prior.show()
-	
