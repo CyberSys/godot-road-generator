@@ -71,7 +71,6 @@ create_geo = false
 material_resource = ExtResource("1")
 material_top_meshes = [NodePath("3way_2x3/3way_2x2")]
 use_lowpoly_preview = true
-draw_lanes_editor = true
 edge_containers = Array[NodePath]([NodePath(""), NodePath(""), NodePath("")])
 edge_rp_targets = Array[NodePath]([NodePath(""), NodePath(""), NodePath("")])
 edge_rp_target_dirs = Array[int]([-1, -1, -1])
@@ -94,7 +93,6 @@ lane_left = NodePath("../pR0_nR0")
 lane_right = NodePath("../../RP_003/N1W1")
 lane_next_tag = "R1"
 lane_prior_tag = "R1"
-draw_in_editor = true
 
 [node name="pR0_nR0" type="Path3D" parent="RP_001"]
 curve = SubResource("Curve3D_lhmbv")
@@ -102,7 +100,6 @@ script = ExtResource("3")
 lane_right = NodePath("../pR1_nR1")
 lane_next_tag = "R0"
 lane_prior_tag = "R0"
-draw_in_editor = true
 
 [node name="pF0_nF0" type="Path3D" parent="RP_001"]
 curve = SubResource("Curve3D_klu8q")
@@ -111,7 +108,6 @@ lane_left = NodePath("../../RP_003/S0W0")
 lane_right = NodePath("../pF1_nF1")
 lane_next_tag = "F0"
 lane_prior_tag = "F0"
-draw_in_editor = true
 
 [node name="pF1_nF1" type="Path3D" parent="RP_001"]
 curve = SubResource("Curve3D_vybvr")
@@ -119,7 +115,6 @@ script = ExtResource("3")
 lane_left = NodePath("../pF0_nF0")
 lane_next_tag = "F1"
 lane_prior_tag = "F1"
-draw_in_editor = true
 
 [node name="RP_002" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16)
@@ -143,30 +138,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.99382e-07, 0, 16)
 curve = SubResource("Curve3D_jw7wf")
 script = ExtResource("3")
 lane_right = NodePath("../../RP_001/pF0_nF0")
-draw_in_editor = true
 
 [node name="pR0_nR0" type="Path3D" parent="RP_003"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
 curve = SubResource("Curve3D_tt3ky")
 script = ExtResource("3")
+lane_right = NodePath("../pR1_nR1")
 lane_next_tag = "R0"
 lane_prior_tag = "R0"
-draw_in_editor = true
 
 [node name="N1W1" type="Path3D" parent="RP_003"]
 transform = Transform3D(-1, 0, -8.74226e-08, 0, 1, 0, 8.74226e-08, 0, -1, -6.99382e-07, 0, 16)
 curve = SubResource("Curve3D_45j6x")
 script = ExtResource("3")
 lane_left = NodePath("../../RP_001/pR1_nR1")
-draw_in_editor = true
 
 [node name="pR1_nR1" type="Path3D" parent="RP_003"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
 curve = SubResource("Curve3D_lwn37")
 script = ExtResource("3")
+lane_left = NodePath("../pR0_nR0")
 lane_next_tag = "R1"
 lane_prior_tag = "R1"
-draw_in_editor = true
 
 [node name="RP_004" type="Node3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.0117083, 0, 0)
