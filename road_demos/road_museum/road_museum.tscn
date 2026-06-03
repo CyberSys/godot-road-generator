@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://dtdqpwngpuys0"]
+[gd_scene load_steps=36 format=3 uid="uid://dtdqpwngpuys0"]
 
 [ext_resource type="Theme" uid="uid://bos557pj10dx8" path="res://road_demos/demo_resources/demo_ui.theme" id="1_5ogp4"]
 [ext_resource type="Script" uid="uid://dpsv46yr2doiw" path="res://road_demos/road_museum/sidescroll_camera.gd" id="1_510rr"]
@@ -17,7 +17,11 @@
 [ext_resource type="Script" uid="uid://dx0pklu2apuar" path="res://addons/road-generator/nodes/road_intersection.gd" id="10_4oev0"]
 [ext_resource type="PackedScene" uid="uid://btf4eewwb5v7s" path="res://addons/road-generator/custom_containers/splitter_2x2.tscn" id="10_rstb4"]
 [ext_resource type="Script" uid="uid://cob3ih0wpthwf" path="res://addons/road-generator/procgen/intersection_ngon.gd" id="11_hm2jj"]
+[ext_resource type="PackedScene" uid="uid://dl2ggbjespgv8" path="res://addons/road-generator/custom_containers/3way_1x1.tscn" id="11_v3hdo"]
 [ext_resource type="PackedScene" uid="uid://dya4uwn8d2iq6" path="res://road_demos/demo_resources/decorations/edge_barrier.tscn" id="17_7n47g"]
+[ext_resource type="PackedScene" uid="uid://dmglq5wa4siq7" path="res://addons/road-generator/custom_containers/splitter_1x1.tscn" id="17_hlnm3"]
+[ext_resource type="PackedScene" uid="uid://dfb13xval0xba" path="res://addons/road-generator/custom_containers/roundabout_1x1.tscn" id="18_qa14c"]
+[ext_resource type="PackedScene" uid="uid://52xlweaf1pst" path="res://addons/road-generator/custom_containers/roundabout_2x2.tscn" id="19_i0f1k"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_nbxyo"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -39,7 +43,7 @@ glow_enabled = true
 [sub_resource type="Resource" id="Resource_ansse"]
 script = ExtResource("11_hm2jj")
 
-[sub_resource type="Curve3D" id="Curve3D_5vw3u"]
+[sub_resource type="Curve3D" id="Curve3D_v3hdo"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 16.0769, -6.2, 0, 0, 0, 0, -4.91692, -34.8453, 0, 24.4224, -5.62221, 0, 42.5478),
 "tilts": PackedFloat32Array(0, 0)
@@ -49,35 +53,35 @@ point_count = 2
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stsme"]
 albedo_color = Color(0.137725, 0.260995, 0.142001, 1)
 
-[sub_resource type="Curve3D" id="Curve3D_l4jy4"]
+[sub_resource type="Curve3D" id="Curve3D_hlnm3"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 15.8571, 10.2, 0, 0, 0, 0, -5.13669, -34.8453, 0, 24.4224, 10.7778, 0, 42.5478),
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_ehsx3"]
+[sub_resource type="Curve3D" id="Curve3D_qa14c"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 15.9938, 0, 0, 0, 0, 0, -5, -34.8453, 0, 24.4224, 0.577789, 0, 42.5478),
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_rpgj5"]
+[sub_resource type="Curve3D" id="Curve3D_i0f1k"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 4.12268e-06, 4.12268e-06, 34.5836, -8.2, 5.37634e-06, -9.77516e-07, 24.4836, -17.3803, 11.2304, 19.3418, -21.9194, 79.8571, -54.997, 12.1602, 56.0724),
 "tilts": PackedFloat32Array(6.97654e-07, -0.206548)
 }
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_jqmwt"]
+[sub_resource type="Curve3D" id="Curve3D_6uvfy"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 4.78411e-06, 4.78411e-06, 40.132, 8.2, -5.37634e-06, 9.77516e-07, 35.916, -25.4959, 16.4743, 19.3418, -21.9194, 79.8571, -59.6819, 15.486, 71.4331),
 "tilts": PackedFloat32Array(6.97654e-07, -0.161082)
 }
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_g106h"]
+[sub_resource type="Curve3D" id="Curve3D_q5lxd"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 4.4534e-06, 4.4534e-06, 37.3578, 0, 0, 0, 28.8056, -20.4484, 13.2129, 19.3418, -21.9194, 79.8571, -56.7681, 13.4175, 61.8795),
 "tilts": PackedFloat32Array(6.97654e-07, -0.170778)
@@ -359,6 +363,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 220, 0, 0)
 [node name="4way_1x1" parent="RoadManager/PrefabIntersections" instance=ExtResource("4_nf15d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16)
 
+[node name="3way_1x1" parent="RoadManager/PrefabIntersections" instance=ExtResource("11_v3hdo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -144.729)
+
 [node name="3way_2x2" parent="RoadManager/PrefabIntersections" instance=ExtResource("6_uc067")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -60)
 
@@ -374,17 +381,29 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, -80)
 [node name="splitter_2x2" parent="RoadManager/PrefabIntersections" instance=ExtResource("10_rstb4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, -120)
 
+[node name="splitter_1x1" parent="RoadManager/PrefabIntersections" instance=ExtResource("17_hlnm3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, -163.983)
+
+[node name="roundabout_1x1" parent="RoadManager/PrefabIntersections" instance=ExtResource("18_qa14c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -197.178)
+
+[node name="roundabout_2x2" parent="RoadManager/PrefabIntersections" instance=ExtResource("19_i0f1k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, -225.749)
+
 [node name="ConnectedPrefab" type="Node3D" parent="RoadManager"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 340, 0, 0)
 
 [node name="RoadActor5" parent="RoadManager/ConnectedPrefab" instance=ExtResource("4_5p3l5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.7574, 0, -42.1725)
 
+[node name="RoadActor9" parent="RoadManager/ConnectedPrefab" instance=ExtResource("4_5p3l5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.72, 0, -78.3461)
+
 [node name="RoadActor6" parent="RoadManager/ConnectedPrefab" instance=ExtResource("4_5p3l5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.7658, 0, -14.277)
 
 [node name="RoadActor7" parent="RoadManager/ConnectedPrefab" instance=ExtResource("4_5p3l5")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45.1511, 0, -17.4033)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.8097, -3.8147e-06, -17.1374)
 
 [node name="RoadActor8" parent="RoadManager/ConnectedPrefab" instance=ExtResource("4_5p3l5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.24063, 0, -30.223)
@@ -395,58 +414,30 @@ script = ExtResource("2_pgtsv")
 material_resource = ExtResource("6_x20i1")
 use_lowpoly_preview = true
 generate_ai_lanes = true
-edge_containers = Array[NodePath]([NodePath("../3way_2x2"), NodePath("../3way_2x2b"), NodePath("../3way_2x2b"), NodePath("../3way_2x2")])
-edge_rp_targets = Array[NodePath]([NodePath("RP_002"), NodePath("RP_001"), NodePath("RP_002"), NodePath("RP_001")])
-edge_rp_target_dirs = Array[int]([0, 1, 0, 1])
-edge_rp_locals = Array[NodePath]([NodePath("RP_002"), NodePath("RP_003"), NodePath("RP_005"), NodePath("RP_006")])
-edge_rp_local_dirs = Array[int]([0, 1, 1, 0])
-
-[node name="RP_001" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 299.474, 0.25, -28.3407)
-script = ExtResource("4_tgwwo")
-traffic_dir = Array[int]([2, 2, 1, 1])
-lanes = Array[int]([2, 4, 4, 2])
-prior_mag = 18.9124
-next_mag = 18.9124
-prior_pt_init = NodePath("../RP_003")
-next_pt_init = NodePath("../RP_002")
+edge_containers = Array[NodePath]([NodePath("../3way_2x2"), NodePath("../3way_2x2"), NodePath("../roundabout_2x2"), NodePath("../3way_2x3"), NodePath("../3way_2x3"), NodePath("../roundabout_2x2")])
+edge_rp_targets = Array[NodePath]([NodePath("RP_002"), NodePath("RP_001"), NodePath("RP_EXIT_C"), NodePath("RP_001"), NodePath("RP_002"), NodePath("RP_EXIT_A")])
+edge_rp_target_dirs = Array[int]([0, 1, 0, 1, 0, 0])
+edge_rp_locals = Array[NodePath]([NodePath("RP_002"), NodePath("RP_006"), NodePath("RP_005"), NodePath("RP_003"), NodePath("RP_007"), NodePath("RP_008")])
+edge_rp_local_dirs = Array[int]([0, 0, 1, 1, 0, 1])
 
 [node name="RP_002" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 324, 0, -12)
 script = ExtResource("4_tgwwo")
 traffic_dir = Array[int]([2, 2, 1, 1])
 lanes = Array[int]([2, 4, 4, 2])
-prior_mag = 8.0
+prior_mag = 13.0981
 next_mag = 8.0
-prior_pt_init = NodePath("../RP_001")
-
-[node name="RP_003" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
-transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, 324, 0, -44)
-script = ExtResource("4_tgwwo")
-traffic_dir = Array[int]([2, 2, 1, 1])
-lanes = Array[int]([2, 4, 4, 2])
-prior_mag = 8.0
-next_mag = 8.0
-next_pt_init = NodePath("../RP_001")
+prior_pt_init = NodePath("../RP_003")
 
 [node name="RP_004" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 382.911, 0.25, -29.2059)
 script = ExtResource("4_tgwwo")
 traffic_dir = Array[int]([2, 2, 1, 1])
 lanes = Array[int]([2, 4, 4, 2])
-prior_mag = 18.1707
+prior_mag = 13.9474
 next_mag = 18.1707
 prior_pt_init = NodePath("../RP_005")
 next_pt_init = NodePath("../RP_006")
-
-[node name="RP_005" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 356, 0, -44)
-script = ExtResource("4_tgwwo")
-traffic_dir = Array[int]([2, 2, 1, 1])
-lanes = Array[int]([2, 4, 4, 2])
-prior_mag = 8.0
-next_mag = 8.0
-next_pt_init = NodePath("../RP_004")
 
 [node name="RP_006" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 356, 0, -12)
@@ -457,17 +448,69 @@ prior_mag = 8.0
 next_mag = 8.0
 prior_pt_init = NodePath("../RP_004")
 
+[node name="RP_005" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 362, 0, -50)
+script = ExtResource("4_tgwwo")
+traffic_dir = Array[int]([2, 2, 1, 1])
+lanes = Array[int]([2, 4, 4, 2])
+prior_mag = 2.0
+next_mag = 12.2145
+next_pt_init = NodePath("../RP_004")
+
+[node name="RP_003" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
+transform = Transform3D(1, 0, -1.42109e-14, 0, 1, 0, 1.42109e-14, 0, 1, 302, 0, -34)
+script = ExtResource("4_tgwwo")
+traffic_dir = Array[int]([2, 2, 1, 1])
+lanes = Array[int]([2, 4, 4, 2])
+prior_mag = 8.0
+next_mag = 12.5913
+next_pt_init = NodePath("../RP_002")
+
+[node name="RP_001" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 317.534, 0, -98.4787)
+script = ExtResource("4_tgwwo")
+traffic_dir = Array[int]([2, 2, 1, 1])
+lanes = Array[int]([2, 4, 4, 2])
+prior_mag = 18.5394
+next_mag = 18.5394
+prior_pt_init = NodePath("../RP_008")
+next_pt_init = NodePath("../RP_007")
+
+[node name="RP_007" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
+transform = Transform3D(1, 0, -1.42109e-14, 0, 1, 0, 1.42109e-14, 0, 1, 302, 0, -66)
+script = ExtResource("4_tgwwo")
+traffic_dir = Array[int]([2, 2, 1, 1])
+lanes = Array[int]([2, 4, 4, 2])
+prior_mag = 8.0
+next_mag = 8.0
+prior_pt_init = NodePath("../RP_001")
+
+[node name="RP_008" type="Node3D" parent="RoadManager/ConnectedPrefab/Dynamic"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 340, 0, -72)
+script = ExtResource("4_tgwwo")
+traffic_dir = Array[int]([2, 2, 1, 1])
+lanes = Array[int]([2, 4, 4, 2])
+prior_mag = 2.0
+next_mag = 18.0814
+next_pt_init = NodePath("../RP_001")
+
 [node name="3way_2x2" parent="RoadManager/ConnectedPrefab" instance=ExtResource("6_uc067")]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, -12)
-edge_containers = Array[NodePath]([NodePath("../Dynamic"), NodePath("../Dynamic"), NodePath("../3way_2x2b")])
-edge_rp_targets = Array[NodePath]([NodePath("../Dynamic/RP_006"), NodePath("RP_002"), NodePath("RP_003")])
-edge_rp_target_dirs = Array[int]([0, 0, 1])
+edge_containers = Array[NodePath]([NodePath("../Dynamic"), NodePath("../Dynamic"), NodePath("../roundabout_2x2")])
+edge_rp_targets = Array[NodePath]([NodePath("../Dynamic/RP_006"), NodePath("RP_002"), NodePath("RP_EXIT_B")])
+edge_rp_target_dirs = Array[int]([0, 0, 0])
 
-[node name="3way_2x2b" parent="RoadManager/ConnectedPrefab" instance=ExtResource("6_uc067")]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, -44)
-edge_containers = Array[NodePath]([NodePath("../Dynamic"), NodePath("../Dynamic"), NodePath("../3way_2x2")])
-edge_rp_targets = Array[NodePath]([NodePath("RP_003"), NodePath("../Dynamic/RP_005"), NodePath("RP_003")])
-edge_rp_target_dirs = Array[int]([1, 1, 1])
+[node name="3way_2x3" parent="RoadManager/ConnectedPrefab" instance=ExtResource("6_uc067")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -38, 0, -50)
+edge_containers = Array[NodePath]([NodePath("../Dynamic"), NodePath("../Dynamic"), NodePath("../roundabout_2x2")])
+edge_rp_targets = Array[NodePath]([NodePath("RP_003"), NodePath("RP_007"), NodePath("RP_EXIT_D")])
+edge_rp_target_dirs = Array[int]([1, 0, 0])
+
+[node name="roundabout_2x2" parent="RoadManager/ConnectedPrefab" instance=ExtResource("19_i0f1k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
+edge_containers = Array[NodePath]([NodePath("../Dynamic"), NodePath("../3way_2x2"), NodePath("../Dynamic"), NodePath("../3way_2x3")])
+edge_rp_targets = Array[NodePath]([NodePath("RP_008"), NodePath("RP_003"), NodePath("RP_005"), NodePath("RP_003")])
+edge_rp_target_dirs = Array[int]([1, 1, 1, 1])
 
 [node name="ProcIntersection" type="Node3D" parent="RoadManager"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 420, 0, 0)
@@ -650,6 +693,7 @@ prior_pt_init = NodePath("../RP_003")
 [node name="DecorationsDemo" type="Node3D" parent="RoadManager"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 600, 0, 0)
 script = ExtResource("2_pgtsv")
+material_resource = ExtResource("6_x20i1")
 use_lowpoly_preview = true
 create_edge_curves = true
 edge_containers = Array[NodePath]([NodePath(""), NodePath("")])
@@ -681,10 +725,11 @@ prior_pt_init = NodePath("../RP_003")
 next_pt_init = NodePath("../RP_001")
 
 [node name="edge_R" type="Path3D" parent="RoadManager/DecorationsDemo/RP_002"]
-curve = SubResource("Curve3D_5vw3u")
+curve = SubResource("Curve3D_v3hdo")
 metadata/_edit_lock_ = true
 
 [node name="barrier" parent="RoadManager/DecorationsDemo/RP_002/edge_R" instance=ExtResource("17_7n47g")]
+path_rotation_accurate = false
 
 [node name="edge_grass_R" type="CSGPolygon3D" parent="RoadManager/DecorationsDemo/RP_002/edge_R"]
 transform = Transform3D(1, 2.98023e-08, 0, 2.98023e-08, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -695,6 +740,7 @@ path_interval_type = 0
 path_interval = 1.0
 path_simplify_angle = 0.0
 path_rotation = 2
+path_rotation_accurate = false
 path_local = true
 path_continuous_u = true
 path_u_distance = 1.0
@@ -702,10 +748,11 @@ path_joined = false
 material = SubResource("StandardMaterial3D_stsme")
 
 [node name="edge_F" type="Path3D" parent="RoadManager/DecorationsDemo/RP_002"]
-curve = SubResource("Curve3D_l4jy4")
+curve = SubResource("Curve3D_hlnm3")
 metadata/_edit_lock_ = true
 
 [node name="barrier" parent="RoadManager/DecorationsDemo/RP_002/edge_F" instance=ExtResource("17_7n47g")]
+path_rotation_accurate = false
 
 [node name="edge_grass_F" type="CSGPolygon3D" parent="RoadManager/DecorationsDemo/RP_002/edge_F"]
 transform = Transform3D(1, 2.98023e-08, 0, 2.98023e-08, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -716,6 +763,7 @@ path_interval_type = 0
 path_interval = 1.0
 path_simplify_angle = 0.0
 path_rotation = 2
+path_rotation_accurate = false
 path_local = true
 path_continuous_u = true
 path_u_distance = 1.0
@@ -723,7 +771,7 @@ path_joined = false
 material = SubResource("StandardMaterial3D_stsme")
 
 [node name="edge_C" type="Path3D" parent="RoadManager/DecorationsDemo/RP_002"]
-curve = SubResource("Curve3D_ehsx3")
+curve = SubResource("Curve3D_qa14c")
 metadata/_edit_lock_ = true
 
 [node name="RP_003" type="Node3D" parent="RoadManager/DecorationsDemo"]
@@ -737,10 +785,11 @@ gutter_profile = Vector2(0.2, 0)
 next_pt_init = NodePath("../RP_002")
 
 [node name="edge_R" type="Path3D" parent="RoadManager/DecorationsDemo/RP_003"]
-curve = SubResource("Curve3D_rpgj5")
+curve = SubResource("Curve3D_i0f1k")
 metadata/_edit_lock_ = true
 
 [node name="barrier" parent="RoadManager/DecorationsDemo/RP_003/edge_R" instance=ExtResource("17_7n47g")]
+path_rotation_accurate = false
 
 [node name="edge_grass_R" type="CSGPolygon3D" parent="RoadManager/DecorationsDemo/RP_003/edge_R"]
 transform = Transform3D(1, 2.98023e-08, 0, 2.98023e-08, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -751,6 +800,7 @@ path_interval_type = 0
 path_interval = 1.0
 path_simplify_angle = 0.0
 path_rotation = 2
+path_rotation_accurate = false
 path_local = true
 path_continuous_u = true
 path_u_distance = 1.0
@@ -758,10 +808,11 @@ path_joined = false
 material = SubResource("StandardMaterial3D_stsme")
 
 [node name="edge_F" type="Path3D" parent="RoadManager/DecorationsDemo/RP_003"]
-curve = SubResource("Curve3D_jqmwt")
+curve = SubResource("Curve3D_6uvfy")
 metadata/_edit_lock_ = true
 
 [node name="barrier" parent="RoadManager/DecorationsDemo/RP_003/edge_F" instance=ExtResource("17_7n47g")]
+path_rotation_accurate = false
 
 [node name="edge_grass_F" type="CSGPolygon3D" parent="RoadManager/DecorationsDemo/RP_003/edge_F"]
 transform = Transform3D(1, 2.98023e-08, 0, 2.98023e-08, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -772,6 +823,7 @@ path_interval_type = 0
 path_interval = 1.0
 path_simplify_angle = 0.0
 path_rotation = 2
+path_rotation_accurate = false
 path_local = true
 path_continuous_u = true
 path_u_distance = 1.0
@@ -779,5 +831,5 @@ path_joined = false
 material = SubResource("StandardMaterial3D_stsme")
 
 [node name="edge_C" type="Path3D" parent="RoadManager/DecorationsDemo/RP_003"]
-curve = SubResource("Curve3D_g106h")
+curve = SubResource("Curve3D_q5lxd")
 metadata/_edit_lock_ = true

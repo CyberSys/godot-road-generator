@@ -49,10 +49,16 @@ const RoadMaterial = preload("res://addons/road-generator/resources/road_texture
 ## If cleared, will utilize the default specificed by the [RoadManager].
 @export var material_resource: Material: set = _set_material
 
+## Override the first material slot for all of these meshes to match RoadContainer top material
+@export var material_top_meshes: Array[MeshInstance3D] = []
+
 ## Material applied to the underside of the generated meshes[br][br]
 ##
 ## If cleared, will utilize the default specificed by the [RoadManager].
 @export var material_underside: Material: set = _set_material_underside
+
+## Override the first material slot for all of these meshes to match RoadContainer underside material
+@export var material_underside_meshes: Array[MeshInstance3D] = []
 
 ## Defines the distance in meters between road loop cuts.[br][br]
 ##
@@ -390,6 +396,7 @@ func _set_thickness(value) -> void:
 
 func _set_material(value) -> void:
 	material_resource = value
+	update_material_overrides()
 	_defer_refresh_on_change()
 
 
@@ -406,6 +413,7 @@ func effective_surface_material() -> Material:
 
 func _set_material_underside(value) -> void:
 	material_underside = value
+	update_material_overrides()
 	_defer_refresh_on_change()
 
 
@@ -433,8 +441,7 @@ func _set_draw_lanes_editor(value: bool):
 	for seg in get_segments():
 		if not generate_ai_lanes:
 			seg.clear_lane_segments()
-		else:
-			seg.update_lane_visibility()
+		seg.update_lane_visibility() # could still have some manually added
 
 
 func _get_draw_lanes_editor() -> bool:
@@ -1056,6 +1063,14 @@ func setup_road_container():
 		material_resource = RoadMaterial
 
 
+func update_material_overrides() -> void:
+	for _mesh in material_top_meshes:
+		if not is_instance_valid(_mesh) or not _mesh is MeshInstance3D:
+			push_warning("Non mesh assigned in RoadContainer %s: material_top_meshes " % self.name)
+			continue
+		_mesh.set_surface_override_material(0, material_resource)
+
+
 # ------------------------------------------------------------------------------
 #endregion
 #region Geometry update
@@ -1219,8 +1234,8 @@ func rebuild_segments(clear_existing := false):
 			signal_rebuilt.append(inter)
 
 	# Once all RoadSegments (and their lanes) exist, update next/prior lanes.
-	if generate_ai_lanes:
-		update_lane_seg_connections()
+	# Update even if generate_ai_lanes off, could have added manually / made editable
+	update_lane_seg_connections()
 	if debug:
 		print_debug("Road segs rebuilt: ", rebuilt)
 	if signal_rebuilt.size() > 0:
