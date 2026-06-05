@@ -20,16 +20,16 @@ _data = {
 }
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_tt3ky"]
+[sub_resource type="Curve3D" id="Curve3D_k0c2a"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -3.65163, 0, 4.70499, 3.65163, 0, -4.70499, -1.09681, 0, -2.79526, 0, 0, 0, 0, 0, 0, 2, 0, -16),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -3.652, 0, -4.705, 3.652, 0, 4.705, -4.78278, 0, 5.80704, 0, 0, 0, 0, 0, 0, -2, 0, 16),
 "tilts": PackedFloat32Array(0, 0, 0)
 }
 point_count = 3
 
-[sub_resource type="Curve3D" id="Curve3D_k0c2a"]
+[sub_resource type="Curve3D" id="Curve3D_tt3ky"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -3.652, 0, -4.705, 3.652, 0, 4.705, -4.78278, 0, 5.80704, 0, 0, 0, 0, 0, 0, -2, 0, 16),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -3.65163, 0, 4.70499, 3.65163, 0, -4.70499, -1.09681, 0, -2.79526, 0, 0, 0, 0, 0, 0, 2, 0, -16),
 "tilts": PackedFloat32Array(0, 0, 0)
 }
 point_count = 3
@@ -106,13 +106,6 @@ lanes = Array[int]([5, 5])
 next_mag = 3.31814
 next_pt_init = NodePath("../RP_004")
 
-[node name="W0N0" type="Path3D" parent="RP_003"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
-curve = SubResource("Curve3D_tt3ky")
-script = ExtResource("4_smvvh")
-lane_right = NodePath("../pF0_nF0")
-draw_in_editor = true
-
 [node name="pF0_nF0" type="Path3D" parent="RP_003"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
 curve = SubResource("Curve3D_k0c2a")
@@ -120,6 +113,13 @@ script = ExtResource("4_smvvh")
 lane_left = NodePath("../W0N0")
 lane_next_tag = "F0"
 lane_prior_tag = "F0"
+draw_in_editor = true
+
+[node name="W0N0" type="Path3D" parent="RP_003"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
+curve = SubResource("Curve3D_tt3ky")
+script = ExtResource("4_smvvh")
+lane_right = NodePath("../pF0_nF0")
 draw_in_editor = true
 
 [node name="W0S0" type="Path3D" parent="RP_003"]

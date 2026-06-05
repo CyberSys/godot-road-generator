@@ -1190,7 +1190,6 @@ func force_assign_lanes() -> void:
 
 ## Makes the calls to (re)build geometry on all child RoadSegments/Intersections
 func rebuild_segments(clear_existing := false):
-	force_assign_lanes()
 	if not is_inside_tree() or not is_node_ready():
 		# This most commonly happens in the editor on project restart, where
 		# each opened scene tab is quickly loaded and then apparently unloaded,
@@ -1262,6 +1261,10 @@ func rebuild_segments(clear_existing := false):
 		var was_rebuilt := inter.check_rebuild()
 		if was_rebuilt:
 			signal_rebuilt.append(inter)
+
+	# After intial lanes are added, ensure the manually defined ones are in
+	# the group. Intentioanlly adding this later, so they aren't picked first
+	force_assign_lanes()
 
 	# Once all RoadSegments (and their lanes) exist, update next/prior lanes.
 	# Update even if generate_ai_lanes off, could have added manually / made editable
