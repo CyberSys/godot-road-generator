@@ -1158,6 +1158,35 @@ func on_point_update(node:RoadGraphNode, low_poly:bool) -> void:
 	if len(segs_updated) > 0:
 		_emit_road_updated(segs_updated)
 
+## Adds all pre-existing RoadLanes to the target group and meta tag
+##
+## Mostly for editor-define lanes to ensure the groups are added, since they
+## may be children of RoadPoints that don't
+func force_assign_lanes() -> void:
+	var rps := get_roadpoints()
+	var mgr := get_manager()
+	var lanes: Array[RoadLane] = []
+
+	# First, get all RoadLanes that are children of detected RoadPoints
+	for _rp in rps:
+		for _rl in _rp.get_children():
+			if not _rl is RoadLane:
+				continue
+			lanes.append(_rl)
+
+	# Now get loose, direct child RoadLanes of container
+	for _ch in get_children():
+		if not _ch is RoadLane:
+			continue
+		lanes.append(_ch)
+
+	for _rl in lanes:
+		if ai_lane_group != "":
+			# Poentially check not already in the group
+			_rl.add_to_group(ai_lane_group)
+		elif is_instance_valid(mgr) and mgr.ai_lane_group != "":
+			_rl.add_to_group(mgr.ai_lane_group)
+
 
 ## Makes the calls to (re)build geometry on all child RoadSegments/Intersections
 func rebuild_segments(clear_existing := false):
@@ -1232,6 +1261,10 @@ func rebuild_segments(clear_existing := false):
 		var was_rebuilt := inter.check_rebuild()
 		if was_rebuilt:
 			signal_rebuilt.append(inter)
+
+	# After intial lanes are added, ensure the manually defined ones are in
+	# the group. Intentioanlly adding this later, so they aren't picked first
+	force_assign_lanes()
 
 	# Once all RoadSegments (and their lanes) exist, update next/prior lanes.
 	# Update even if generate_ai_lanes off, could have added manually / made editable

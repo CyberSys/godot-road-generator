@@ -34,13 +34,6 @@ _data = {
 }
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_jw7wf"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -5.19055, 0, 6.0277, 5.19055, 0, -6.0277, -1.5685, 0, -2.60429, 0, 0, 0, 0, 0, 0, 2, 0, -16),
-"tilts": PackedFloat32Array(0, 0, 0)
-}
-point_count = 3
-
 [sub_resource type="Curve3D" id="Curve3D_tt3ky"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -3.65163, 0, 4.70499, 3.65163, 0, -4.70499, -1.09681, 0, -2.79526, 0, 0, 0, 0, 0, 0, 2, 0, -16),
@@ -48,16 +41,23 @@ _data = {
 }
 point_count = 3
 
-[sub_resource type="Curve3D" id="Curve3D_45j6x"]
+[sub_resource type="Curve3D" id="Curve3D_lwn37"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 6, -2.19957, 0, -2.57842, 2.19957, 0, 2.57842, -8.69021, 0, 8.19864, 0, 0, 0, 0, 0, 0, -6, 0, 16),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 6, -2.7161, 0, -2.75859, 2.7161, 0, 2.75859, -8.47953, 0, 8.33909, 0, 0, 0, 0, 0, 0, -6, 0, 16),
 "tilts": PackedFloat32Array(0, 0, 0)
 }
 point_count = 3
 
-[sub_resource type="Curve3D" id="Curve3D_lwn37"]
+[sub_resource type="Curve3D" id="Curve3D_jw7wf"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 6, -2.7161, 0, -2.75859, 2.7161, 0, 2.75859, -8.47953, 0, 8.33909, 0, 0, 0, 0, 0, 0, -6, 0, 16),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 2, -5.19055, 0, 6.0277, 5.19055, 0, -6.0277, -1.5685, 0, -2.60429, 0, 0, 0, 0, 0, 0, 2, 0, -16),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+
+[sub_resource type="Curve3D" id="Curve3D_45j6x"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0, 6, -2.19957, 0, -2.57842, 2.19957, 0, 2.57842, -8.69021, 0, 8.19864, 0, 0, 0, 0, 0, 0, -6, 0, 16),
 "tilts": PackedFloat32Array(0, 0, 0)
 }
 point_count = 3
@@ -133,12 +133,6 @@ lanes = Array[int]([2, 4, 4, 2])
 next_mag = 3.31814
 next_pt_init = NodePath("../RP_004")
 
-[node name="S0W0" type="Path3D" parent="RP_003"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.99382e-07, 0, 16)
-curve = SubResource("Curve3D_jw7wf")
-script = ExtResource("3")
-lane_right = NodePath("../../RP_001/pF0_nF0")
-
 [node name="pR0_nR0" type="Path3D" parent="RP_003"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
 curve = SubResource("Curve3D_tt3ky")
@@ -147,12 +141,6 @@ lane_right = NodePath("../pR1_nR1")
 lane_next_tag = "R0"
 lane_prior_tag = "R0"
 
-[node name="N1W1" type="Path3D" parent="RP_003"]
-transform = Transform3D(-1, 0, -8.74226e-08, 0, 1, 0, 8.74226e-08, 0, -1, -6.99382e-07, 0, 16)
-curve = SubResource("Curve3D_45j6x")
-script = ExtResource("3")
-lane_left = NodePath("../../RP_001/pR1_nR1")
-
 [node name="pR1_nR1" type="Path3D" parent="RP_003"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6.99382e-07, 0, 16)
 curve = SubResource("Curve3D_lwn37")
@@ -160,6 +148,18 @@ script = ExtResource("3")
 lane_left = NodePath("../pR0_nR0")
 lane_next_tag = "R1"
 lane_prior_tag = "R1"
+
+[node name="S0W0" type="Path3D" parent="RP_003"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.99382e-07, 0, 16)
+curve = SubResource("Curve3D_jw7wf")
+script = ExtResource("3")
+lane_right = NodePath("../../RP_001/pF0_nF0")
+
+[node name="N1W1" type="Path3D" parent="RP_003"]
+transform = Transform3D(-1, 0, -8.74226e-08, 0, 1, 0, 8.74226e-08, 0, -1, -6.99382e-07, 0, 16)
+curve = SubResource("Curve3D_45j6x")
+script = ExtResource("3")
+lane_left = NodePath("../../RP_001/pR1_nR1")
 
 [node name="RP_004" type="Node3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.0117083, 0, 0)
