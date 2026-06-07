@@ -464,12 +464,13 @@ func _set_create_geo(value: bool) -> void:
 	create_geo = value
 	for ch in get_children():
 		# Cyclic loading, have to use workaround
-		if not ch.has_method("is_road_point"):
-			continue
-		for rp_ch in ch.get_children():
-			# Cycling loading, have to use workaround
-			if rp_ch.has_method("is_road_segment"):
-				rp_ch.do_roadmesh_creation()
+		if ch is RoadPoint:
+			for rp_ch in ch.get_children():
+				# Cycling loading, have to use workaround
+				if rp_ch.has_method("is_road_segment"):
+					rp_ch.do_roadmesh_creation()
+		if ch is RoadIntersection:
+			ch._do_roadmesh_creation()
 	if value == true:
 		_dirty = true
 		call_deferred("_dirty_rebuild_deferred")
