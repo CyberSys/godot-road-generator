@@ -32,7 +32,7 @@ var _edi = get_editor_interface()
 var _eds = get_editor_interface().get_selection()
 var _last_point: Node
 var _last_lane: Node
-var _export_file_dialog: FileDialog
+var _export_file_dialog: EditorFileDialog
 var _last_selection_roadnode: bool = false
 
 var _lock_x_rotation := false
@@ -2022,31 +2022,41 @@ func _export_mesh_modal() -> void:
 		return
 	
 	var basepath: String
-	if selected.get_owner() and selected.get_owner().scene_file_path:
+	if selected.owner and selected.owner.scene_file_path:
+		# RC is a child of another editor node
 		var subpath := selected.get_owner().scene_file_path
 		basepath = subpath.get_basename() + "_"
+	elif selected.scene_file_path:
+		# Root of saved save
+		var subpath := selected.scene_file_path
+		basepath = subpath.get_basename() + "_"
 	else:
+		# Fallback, shouldn't happen
 		basepath = "res://"
 
 	var path := "%s%s_geo.glb" % [basepath, selected.name]
 	var abspath := ProjectSettings.globalize_path(path)
 
 	var editorViewport = Engine.get_singleton(&"EditorInterface").get_editor_viewport_3d()
-	_export_file_dialog = FileDialog.new()
-	
-	_export_file_dialog.file_selected.connect(_export_gltf)
-	_export_file_dialog.current_dir = abspath.get_base_dir()
-	_export_file_dialog.current_path = abspath
-	_export_file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
-	_export_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	_export_file_dialog = EditorFileDialog.new()
+	editorViewport.add_child(_export_file_dialog, true)
+
 	_export_file_dialog.title = "Export RoadContainer to gLTF"
+	_export_file_dialog.current_path = abspath
+	_export_file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
+	_export_file_dialog.set_filters(PackedStringArray(["*.glb, *.gltf ; gLTF Files"]))
+	# In at least godot 4.4: Enabling this nullifies the ability to specify an initial directory,
+	# eve without using OS native directories. True for FileDialog and EditorFileDialog alike.
+	# It will always be the project root. But, at least with EditorFileDialog, we get some history
+	# and there's not the bug of clicking into a folder clearing the filename.
+	_export_file_dialog.access = EditorFileDialog.ACCESS_FILESYSTEM
 	
 	_export_file_dialog.set_option_count(1)
 	_export_file_dialog.set_option_name(0, "Instance after export")
 	_export_file_dialog.set_option_values(0, ["Yes", "No"])
 	_export_file_dialog.set_option_default(0, 1)
 	
-	editorViewport.add_child(_export_file_dialog, true)
+	_export_file_dialog.file_selected.connect(_export_gltf)
 	_export_file_dialog.popup_centered_ratio()
 
 
