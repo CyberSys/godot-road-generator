@@ -2022,12 +2022,14 @@ func _export_mesh_modal() -> void:
 		return
 	
 	var basepath: String
+	var rc_is_root: bool = false
 	if selected.owner and selected.owner.scene_file_path:
 		# RC is a child of another editor node
 		var subpath := selected.get_owner().scene_file_path
 		basepath = subpath.get_basename() + "_"
 	elif selected.scene_file_path:
 		# Root of saved save
+		rc_is_root = true
 		var subpath := selected.scene_file_path
 		basepath = subpath.get_basename() + "_"
 	else:
@@ -2050,12 +2052,17 @@ func _export_mesh_modal() -> void:
 	# It will always be the project root. But, at least with EditorFileDialog, we get some history
 	# and there's not the bug of clicking into a folder clearing the filename.
 	_export_file_dialog.access = EditorFileDialog.ACCESS_FILESYSTEM
-	
-	_export_file_dialog.set_option_count(1)
-	_export_file_dialog.set_option_name(0, "Instance after export")
-	_export_file_dialog.set_option_values(0, ["Yes", "No"])
-	_export_file_dialog.set_option_default(0, 1)
-	
+
+	if not rc_is_root:
+		# This is the code which disables the ability to instance a glb back
+		# into the scene when the RoadContainer is the root. This is because
+		# it is reliably crashing Godot for some reason, so we don't want to
+		# let it to users while it is unstable.
+		_export_file_dialog.set_option_count(1)
+		_export_file_dialog.set_option_name(0, "Instance after export")
+		_export_file_dialog.set_option_values(0, ["Yes", "No"])
+		_export_file_dialog.set_option_default(0, 1)
+		
 	_export_file_dialog.file_selected.connect(_export_gltf)
 	_export_file_dialog.popup_centered_ratio()
 
@@ -2065,31 +2072,34 @@ func _export_gltf(path: String) -> void:
 	
 	if not path.get_extension() in ["glb", "gltf"]:
 		path = "%s.%s" % [path, "glb"]
-		print("Resolved path to: ", path)
+	
+	var owner = container if container == get_tree().edited_scene_root else container.get_owner()
 	
 	# Identify options selected
+	var instance_after_export:bool = false
 	var _option_values := _export_file_dialog.get_selected_options()
-	var option_index:int = _option_values[_export_file_dialog.get_option_name(0)]
-	var instance_after_export:bool = option_index == 0
+	if _option_values:
+		var option_index:int = _option_values[_export_file_dialog.get_option_name(0)]
+		instance_after_export = option_index == 0
 	
 	var meshes: Array[Mesh] = []
 	var unset_owners:Array[Array] = []
 	for _seg in container.get_segments():
 		var seg := _seg as RoadSegment 
 		unset_owners.append([_seg, _seg.owner])
-		_seg.owner = container.get_owner()
+		_seg.owner = owner
 		if is_instance_valid(seg.road_mesh):
 			meshes.append(seg.road_mesh.mesh)
 			unset_owners.append([seg.road_mesh, seg.road_mesh.owner])
-			seg.road_mesh.owner = container.get_owner()
+			seg.road_mesh.owner = owner
 	for _intersec in container.get_intersections():
 		var intersec := _intersec as RoadIntersection
 		unset_owners.append([intersec, intersec.owner])
-		intersec.owner = container.get_owner()
+		intersec.owner = owner
 		if is_instance_valid(intersec._mesh):
 			meshes.append(intersec._mesh.mesh)
 			unset_owners.append([intersec._mesh, intersec._mesh.owner])
-			intersec._mesh.owner = container.get_owner()
+			intersec._mesh.owner = owner
 		
 	
 	var gltf_document_save := GLTFDocument.new()
@@ -2108,8 +2118,8 @@ func _export_gltf(path: String) -> void:
 	if instance_after_export:
 		_instance_gltf_post_export(container, path)
 	else:
-		Engine.get_singleton(&"EditorInterface").get_resource_filesystem().scan_sources()
-
+		EditorInterface.get_resource_filesystem().scan_sources()
+	
 	_export_file_dialog.queue_free()
 
 
@@ -2119,9 +2129,10 @@ func _instance_gltf_post_export(container:RoadContainer, export_file: String) ->
 		push_error("Failed to localize the path, ensure gltf was saved within project folder to instance after")
 		return
 	
-	Engine.get_singleton(&"EditorInterface").get_resource_filesystem().update_file(local_path)
-	Engine.get_singleton(&"EditorInterface").get_resource_filesystem().reimport_files([local_path])
-	
+	var fs := EditorInterface.get_resource_filesystem()
+	fs.update_file(local_path)
+	fs.scan_sources()
+	await EditorInterface.get_base_control().get_tree().process_frame
 	var glb_scene:PackedScene = load(export_file)
 	if not glb_scene:
 		push_error("Failed load gltf/glb export, check output path and try again")
@@ -2130,21 +2141,26 @@ func _instance_gltf_post_export(container:RoadContainer, export_file: String) ->
 	var glb_model:Node3D = glb_scene.instantiate()
 	glb_model.name = export_file.get_file().get_basename()
 	
-	# Undo/redoable part of action
-	# TODO: Revisit this, the "do" action works, but undo is unstable/can crash godot.
-	#var undo_redo = get_undo_redo()
-	#undo_redo.create_action("Replace road geo with instance")
-	#undo_redo.add_do_method(container, "add_child", glb_model, true)
-	#undo_redo.add_do_method(glb_model, "set_owner", get_tree().get_edited_scene_root())
-	#undo_redo.add_do_property(container, "create_geo", false)
-	#undo_redo.add_do_reference(glb_model)
-	#undo_redo.add_undo_property(container, "create_geo", container.create_geo)
-	#undo_redo.add_undo_method(container, "remove_child", glb_model)
-	#undo_redo.commit_action()
+	var owner = container.owner
+	if not is_instance_valid(owner):
+		# Scene root won't have an owner itself
+		owner = container
 	
-	container.add_child(glb_model)
-	glb_model.owner = container.get_owner()
-	container.create_geo = false
+	var editor_selected:Array = _edi.get_selection().get_selected_nodes()
+	
+	# Undo/redoable part of action
+	var undo_redo = get_undo_redo()
+	undo_redo.create_action("Replace road geo with instance")
+	undo_redo.add_do_reference(glb_model)
+	undo_redo.add_do_method(container, "add_child", glb_model, true)
+	undo_redo.add_do_method(glb_model, "set_owner", owner)
+	undo_redo.add_do_property(container, "create_geo", false)
+	undo_redo.add_do_method(self, "set_selection", glb_model)
+	
+	undo_redo.add_undo_method(container, "remove_child", glb_model)
+	undo_redo.add_undo_property(container, "create_geo", container.create_geo)
+	undo_redo.add_undo_method(self, "set_selection_list", editor_selected)
+	undo_redo.commit_action()
 
 
 ## Open up the addon feedback form
