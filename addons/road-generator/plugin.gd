@@ -16,6 +16,11 @@ const ConnectionTool = preload("res://addons/road-generator/ui/connection_tool.g
 
 const RoadSegment = preload("res://addons/road-generator/nodes/road_segment.gd")
 
+# Enable the popup to offer instancing a RoadContainer gLTF after export.
+# Unfortunately, while it appears to work in the UI, it somehow results in
+# instability and reliable crashing upon pressing save. Flip back to true in
+# the future to see if it becomes stable enough to retain.
+const ENABLE_GLTF_INSTANCE_INPLACE := false
 
 var tool_mode # Will be a value of: RoadToolbar.InputMode.SELECT
 
@@ -32,7 +37,7 @@ var _edi = get_editor_interface()
 var _eds = get_editor_interface().get_selection()
 var _last_point: Node
 var _last_lane: Node
-var _export_file_dialog: FileDialog
+var _export_file_dialog: EditorFileDialog
 var _last_selection_roadnode: bool = false
 
 var _lock_x_rotation := false
@@ -2022,31 +2027,36 @@ func _export_mesh_modal() -> void:
 		return
 	
 	var basepath: String
-	if selected.get_owner() and selected.get_owner().scene_file_path:
+	if selected.owner and selected.owner.scene_file_path:
+		# RC is a child of another editor node
 		var subpath := selected.get_owner().scene_file_path
 		basepath = subpath.get_basename() + "_"
+	elif selected.scene_file_path:
+		# Root of saved save
+		var subpath := selected.scene_file_path
+		basepath = subpath.get_basename() + "_"
 	else:
+		# Fallback, shouldn't happen
 		basepath = "res://"
 
 	var path := "%s%s_geo.glb" % [basepath, selected.name]
 	var abspath := ProjectSettings.globalize_path(path)
 
 	var editorViewport = Engine.get_singleton(&"EditorInterface").get_editor_viewport_3d()
-	_export_file_dialog = FileDialog.new()
-	
-	_export_file_dialog.file_selected.connect(_export_gltf)
-	_export_file_dialog.current_dir = abspath.get_base_dir()
-	_export_file_dialog.current_path = abspath
-	_export_file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
-	_export_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
-	_export_file_dialog.title = "Export RoadContainer to gLTF"
-	
-	_export_file_dialog.set_option_count(1)
-	_export_file_dialog.set_option_name(0, "Instance after export")
-	_export_file_dialog.set_option_values(0, ["Yes", "No"])
-	_export_file_dialog.set_option_default(0, 1)
-	
+	_export_file_dialog = EditorFileDialog.new()
 	editorViewport.add_child(_export_file_dialog, true)
+
+	_export_file_dialog.title = "Export RoadContainer to gLTF"
+	_export_file_dialog.current_path = abspath
+	_export_file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
+	_export_file_dialog.set_filters(PackedStringArray(["*.glb, *.gltf ; gLTF Files"]))
+	# In at least godot 4.4: Enabling this nullifies the ability to specify an initial directory,
+	# even without using OS native directories. True for FileDialog and EditorFileDialog alike.
+	# It will always be the project root. But, at least with EditorFileDialog, we get some history
+	# and there's not the bug of clicking into a folder clearing the filename.
+	_export_file_dialog.access = EditorFileDialog.ACCESS_FILESYSTEM
+		
+	_export_file_dialog.file_selected.connect(_export_gltf)
 	_export_file_dialog.popup_centered_ratio()
 
 
@@ -2055,33 +2065,36 @@ func _export_gltf(path: String) -> void:
 	
 	if not path.get_extension() in ["glb", "gltf"]:
 		path = "%s.%s" % [path, "glb"]
-		print("Resolved path to: ", path)
+	
+	var owner = container if container == get_tree().edited_scene_root else container.get_owner()
 	
 	# Identify options selected
+	var instance_after_export:bool = false
 	var _option_values := _export_file_dialog.get_selected_options()
-	var option_index:int = _option_values[_export_file_dialog.get_option_name(0)]
-	var instance_after_export:bool = option_index == 0
+	if _option_values:
+		var option_index:int = _option_values[_export_file_dialog.get_option_name(0)]
+		instance_after_export = option_index == 0
 	
 	var meshes: Array[Mesh] = []
 	var unset_owners:Array[Array] = []
 	for _seg in container.get_segments():
 		var seg := _seg as RoadSegment 
 		unset_owners.append([_seg, _seg.owner])
-		_seg.owner = container.get_owner()
+		_seg.owner = owner
 		if is_instance_valid(seg.road_mesh):
 			meshes.append(seg.road_mesh.mesh)
 			unset_owners.append([seg.road_mesh, seg.road_mesh.owner])
-			seg.road_mesh.owner = container.get_owner()
+			seg.road_mesh.owner = owner
 	for _intersec in container.get_intersections():
 		var intersec := _intersec as RoadIntersection
 		unset_owners.append([intersec, intersec.owner])
-		intersec.owner = container.get_owner()
+		intersec.owner = owner
 		if is_instance_valid(intersec._mesh):
 			meshes.append(intersec._mesh.mesh)
 			unset_owners.append([intersec._mesh, intersec._mesh.owner])
-			intersec._mesh.owner = container.get_owner()
-		
-	
+			intersec._mesh.owner = owner
+
+	await EditorInterface.get_base_control().get_tree().process_frame
 	var gltf_document_save := GLTFDocument.new()
 	var gltf_state_save := GLTFState.new()
 
@@ -2095,46 +2108,77 @@ func _export_gltf(path: String) -> void:
 	for unsetter in unset_owners:
 		unsetter[0].owner = unsetter[1]
 
-	if instance_after_export:
-		_instance_gltf_post_export(container, path)
+	var local_path := ProjectSettings.localize_path(path)
+	var is_in_project := local_path.begins_with("res://")
+	if is_in_project and ENABLE_GLTF_INSTANCE_INPLACE:
+		await EditorInterface.get_base_control().get_tree().process_frame
+		_prompt_instance_gltf(container, local_path)
 	else:
-		Engine.get_singleton(&"EditorInterface").get_resource_filesystem().scan_sources()
-
+		EditorInterface.get_resource_filesystem().scan_sources()
+	
 	_export_file_dialog.queue_free()
 
 
-func _instance_gltf_post_export(container:RoadContainer, export_file: String) -> void:
-	var local_path := ProjectSettings.localize_path(export_file)
-	if export_file == local_path and not export_file.begins_with("res://"):
-		push_error("Failed to localize the path, ensure gltf was saved within project folder to instance after")
-		return
+## Attempts to let Godot stabilize while reimportin gis in progress
+func _prompt_instance_gltf_deferred(container: RoadContainer, local_path: String) -> void:
+	call_deferred("_prompt_instance_gltf", container, local_path)
+
+
+func _prompt_instance_gltf(container: RoadContainer, local_path: String) -> void:
+	var fs := EditorInterface.get_resource_filesystem()
+	fs.scan_sources()
+	await fs.resources_reimported
+	await EditorInterface.get_base_control().get_tree().process_frame
+
+	var confirm_dialog := ConfirmationDialog.new()
+	confirm_dialog.title = "Instance exported gLTF?"
+	confirm_dialog.dialog_text = "The gLTF file export was successful. Instance it now?\nThis will disable Create Geo on the RoadContainer."
+	confirm_dialog.get_ok_button().text = "Yes"
+	confirm_dialog.get_cancel_button().text = "No"
 	
-	Engine.get_singleton(&"EditorInterface").get_resource_filesystem().update_file(local_path)
-	Engine.get_singleton(&"EditorInterface").get_resource_filesystem().reimport_files([local_path])
+	confirm_dialog.confirmed.connect(func():
+		_instance_gltf_in_place(container, local_path)
+		confirm_dialog.queue_free()
+	)
+	confirm_dialog.canceled.connect(func():
+		confirm_dialog.queue_free()
+	)
 	
+	EditorInterface.get_base_control().add_child(confirm_dialog)
+	confirm_dialog.popup_centered()
+
+
+func _instance_gltf_in_place(container:RoadContainer, export_file: String) -> void:
 	var glb_scene:PackedScene = load(export_file)
 	if not glb_scene:
 		push_error("Failed load gltf/glb export, check output path and try again")
 		return
-	
 	var glb_model:Node3D = glb_scene.instantiate()
 	glb_model.name = export_file.get_file().get_basename()
 	
-	# Undo/redoable part of action
-	# TODO: Revisit this, the "do" action works, but undo is unstable/can crash godot.
-	#var undo_redo = get_undo_redo()
-	#undo_redo.create_action("Replace road geo with instance")
-	#undo_redo.add_do_method(container, "add_child", glb_model, true)
-	#undo_redo.add_do_method(glb_model, "set_owner", get_tree().get_edited_scene_root())
-	#undo_redo.add_do_property(container, "create_geo", false)
-	#undo_redo.add_do_reference(glb_model)
-	#undo_redo.add_undo_property(container, "create_geo", container.create_geo)
-	#undo_redo.add_undo_method(container, "remove_child", glb_model)
-	#undo_redo.commit_action()
-	
-	container.add_child(glb_model)
-	glb_model.owner = container.get_owner()
-	container.create_geo = false
+	var owner = container.owner
+	if not is_instance_valid(owner):
+		# Scene root won't have an owner itself
+		owner = container
+	var previous_create_geo := container.create_geo
+
+	# This is the unstable part, evidently. Can crash after pressing save,
+	# and usually has the error about history mismatch (4x)
+	# ERROR: UndoRedo history mismatch: expected 0, got 3.
+
+	var undo_redo := get_undo_redo()
+
+	undo_redo.create_action("Replace road geo with instance")
+	undo_redo.add_do_reference(glb_model)
+	undo_redo.add_do_method(container, "add_child", glb_model, true)
+	undo_redo.add_do_method(glb_model, "set_owner", owner)
+	undo_redo.add_do_property(container, "create_geo", false)
+
+	undo_redo.add_undo_method(container, "remove_child", glb_model)
+	undo_redo.add_undo_method(glb_model, "set_owner", null)
+	undo_redo.add_undo_property(container, "create_geo", previous_create_geo)
+
+	undo_redo.commit_action()
 
 
 ## Open up the addon feedback form
