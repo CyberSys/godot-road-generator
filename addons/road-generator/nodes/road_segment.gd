@@ -388,23 +388,32 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 		# TODO: Check for existing lanes and reuse (but also clean up if needed)
 		# var ln_child = self.get_node_or_null(ln_name)
 		var ln_child = null
+		var is_user_editable := false
 		ln_child = _par.get_node_or_null(ln_name)
 		if not is_instance_valid(ln_child) or not ln_child is RoadLane:
-			ln_child = RoadLane.new()
-			_par.add_child(ln_child)
-			if container.debug_scene_visible:
-				ln_child.owner = container.get_owner()
-
-			if container.ai_lane_group != "":
-				ln_child.add_to_group(container.ai_lane_group)
-			elif is_instance_valid(manager) and manager.ai_lane_group != "":
-				ln_child.add_to_group(manager.ai_lane_group)
-			ln_child.set_meta("_edit_lock_", true)
-			ln_child.auto_free_vehicles = container.auto_free_vehicles
+			if container.generate_ai_lanes:
+				ln_child = RoadLane.new()
+				_par.add_child(ln_child)
+				if container.debug_scene_visible:
+					ln_child.owner = container.get_owner()
+				ln_child.set_meta("_edit_lock_", true)
+				ln_child.auto_free_vehicles = container.auto_free_vehicles
+			else:
+				lanes_added += 1
+				last_ln = null # For the next loop iteration.
+				continue
+		elif is_instance_valid(ln_child.owner):
+			is_user_editable = true
 		else:
 			ln_child.curve.clear_points()
 		var new_ln:RoadLane = ln_child
 		active_lanes.append(new_ln)
+		
+		if container.ai_lane_group != "":
+			# check not already in the group
+			ln_child.add_to_group(container.ai_lane_group)
+		elif is_instance_valid(manager) and manager.ai_lane_group != "":
+			ln_child.add_to_group(manager.ai_lane_group)
 
 		# Assign the in and out lane tags, to help with connecting to other
 		# road lanes later (handled by RoadContainer).
@@ -430,18 +439,26 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 		# TODO(#46): Swtich to re-sampling and adding more points following the
 		# curve along from the parent path generator, including its use of ease
 		# in and out at the edges.
-		offset_curve(self, new_ln, in_offset, out_offset, start_point, end_point, new_ln_reverse)
+		if not is_user_editable:
+			offset_curve(self, new_ln, in_offset, out_offset, start_point, end_point, new_ln_reverse)
 
 		# Visually display if indicated, and not mid transform (low_poly)
-		if low_poly:
+		if is_user_editable:
+			# Never deleted anyways, so always display
+			new_ln.draw_in_editor = container.draw_lanes_editor
+			new_ln.draw_in_game = container.draw_lanes_game
+		elif low_poly:
 			new_ln.draw_in_editor = false
+			new_ln.draw_in_game = false
 		else:
 			new_ln.draw_in_editor = container.draw_lanes_editor
-		new_ln.draw_in_game = container.draw_lanes_game
+			new_ln.draw_in_game = container.draw_lanes_game
+		
 		new_ln.refresh_geom = true
 		new_ln.rebuild_geom()
 
 		# Update lane connectedness for left/right lane connections.
+		# Attempt to do so for user editable lanes
 		if not last_ln == null and last_ln_reverse == new_ln_reverse:
 			# If the last lane and this one are facing the same way, then they
 			# should be adjacent for lane changing. Which lane (left/right) is
@@ -457,7 +474,7 @@ func generate_lane_segments(_debug: bool = false) -> bool:
 		lanes_added += 1
 		last_ln = new_ln # For the next loop iteration.
 		last_ln_reverse = new_ln_reverse
-	clear_lane_segments(active_lanes)
+	clear_lane_segments(active_lanes) # input is the *ignore* list
 
 	return lanes_added > 0
 
@@ -640,14 +657,21 @@ func get_lanes() -> Array:
 ## Remove all RoadLanes attached to this RoadSegment
 func clear_lane_segments(ignore_list: Array = []) -> void:
 	for l: RoadLane in self.get_lanes():
-		if l in ignore_list:
-			return
+		if l in ignore_list or is_instance_valid(l.owner):
+			continue
 		var ln:RoadLane = l.get_node_or_null(l.lane_next)
 		if ln && ln.lane_prior == ln.get_path_to(l):
 			ln.lane_prior = NodePath("")
 		var lp:RoadLane = l.get_node_or_null(l.lane_prior)
 		if lp && lp.lane_next == lp.get_path_to(l):
 			lp.lane_next = NodePath("")
+		
+		var ll:RoadLane = l.get_node_or_null(l.lane_left)
+		if ll && ll.lane_right == ll.get_path_to(l):
+			ll.lane_right = NodePath("")
+		var lr:RoadLane = l.get_node_or_null(l.lane_right)
+		if lr && lr.lane_left == lr.get_path_to(l):
+			lr.lane_left = NodePath("")
 		l.queue_free()
 
 
@@ -708,10 +732,11 @@ func _rebuild():
 	else:
 		clear_edge_curves()
 
-	if container.generate_ai_lanes:
-		generate_lane_segments()
-	else:
+	if not container.generate_ai_lanes:
 		clear_lane_segments()
+	# Always call genreate lanes, in case there are manual lanes to run connections on
+	# Internally it repsects generate_ai_lanes.
+	generate_lane_segments()
 
 
 func _update_curve():
