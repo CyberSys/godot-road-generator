@@ -1501,6 +1501,8 @@ func subaction_create_intersection(source_rp: RoadPoint, rp_branch: RoadPoint, u
 	var prior_graph: RoadGraphNode
 	var prior_rp: RoadPoint
 	var prior_samedir: bool = true
+	var src_origin := source_rp.global_transform.origin
+	var src_up := source_rp.global_transform.basis.y
 	
 	var next_graph: RoadGraphNode
 	var next_rp: RoadPoint
@@ -1547,6 +1549,10 @@ func subaction_create_intersection(source_rp: RoadPoint, rp_branch: RoadPoint, u
 		if not is_instance_valid(_branch) or not _branch is RoadPoint:
 			continue
 		#subaction_add_branch(inter, _branch, undo_redo)
+		if not _branch.get_prior_road_node() and not _branch.get_next_road_node():
+			print("Auto rotate this RP: ", _branch.name)
+			undo_redo.add_do_method(_branch, "look_at", src_origin, src_up)
+			undo_redo.add_undo_property(_branch, "global_transform", _branch.global_transform)
 		undo_redo.add_do_method(inter, "add_branch", _branch)
 	undo_redo.add_do_reference(inter)
 	
@@ -1555,6 +1561,8 @@ func subaction_create_intersection(source_rp: RoadPoint, rp_branch: RoadPoint, u
 		if not is_instance_valid(_branch) or not _branch is RoadPoint:
 			continue
 		undo_redo.add_undo_method(inter, "remove_branch", _branch)
+		if not _branch.prior_pt_init and not _branch.next_pt_init:
+			print("Auto rotate this RP: ", _branch.name)
 	
 	undo_redo.add_undo_method(source_rp.get_parent(), "remove_child", inter)
 	undo_redo.add_undo_method(inter, "set_owner", null)
