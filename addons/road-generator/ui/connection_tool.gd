@@ -454,13 +454,18 @@ func draw_hint_create_rp(overlay: Control) -> void:
 
 func draw_hint_create_intersection(overlay: Control) -> void:
 	var col: Color = Color.AQUA
-	for idx in hint_source_points.size():
-		var src := hint_source_points[idx]
-		var trg := hint_target_points[idx]
-		var dashed: bool = idx > 0
-		_draw_connector(overlay, src, trg, col, dashed)
-		_draw_mouse_label(overlay, col, "Create Intersection")
-	_draw_edges(overlay, col, false)
+	if hint_target_points.is_empty():
+		if hint_source_points.size() > 0:
+			_draw_connector(overlay, hint_source_points[0], cursor, col, true)
+			_draw_mouse_label(overlay, col, "Create Intersection")
+	else:
+		for idx in hint_source_points.size():
+			var src := hint_source_points[idx]
+			var trg := hint_target_points[idx]
+			var dashed: bool = idx > 0
+			_draw_connector(overlay, src, trg, col, dashed)
+			_draw_mouse_label(overlay, col, "Create Intersection")
+		_draw_edges(overlay, col, false)
 
 
 func draw_hint_disconnect(overlay: Control, label: String) -> void:
@@ -755,7 +760,9 @@ func _handle_add_mode_input(camera: Camera3D, event: InputEvent) -> int:
 		elif selection is RoadPoint and not is_instance_valid(hover_roadnode):
 			var rp_sel_filled:bool = selection.is_prior_connected() and selection.is_next_connected()
 			if rp_sel_filled:
-				pass
+				hint_source_nodes.append(selection)
+				hint_source_points.append(camera.unproject_position(selection.global_transform.origin))
+				hinting = HintState.CREATE_INTERSECTION
 			else:
 				hint_source_nodes.append(selection)
 				hint_source_points.append(camera.unproject_position(selection.global_transform.origin))
@@ -985,8 +992,15 @@ func _perform_action(camera: Camera3D) -> int:
 				plg.add_roadcontainer_and_roadpoint(mgr, pos, nrm)
 			return INPUT_STOP
 		HintState.CREATE_INTERSECTION:
-			if hint_source_nodes[0] is RoadPoint and hint_target_nodes[0] is RoadPoint:
+			if hint_source_nodes.size() > 0 and hint_target_nodes.size() > 0 and hint_source_nodes[0] is RoadPoint and hint_target_nodes[0] is RoadPoint:
 				plg.convert_to_intersection_with_new_branch(hint_target_nodes[0], hint_source_nodes[0])
+			elif hint_source_nodes.size() > 0 and hint_source_nodes[0] is RoadPoint and hint_target_nodes.is_empty():
+				var selection = hint_source_nodes[0]
+				var res: Array = get_click_point_with_context(
+					_intersect_dict, _intersect_mouse_src, _intersect_mouse_nrm, camera, selection)
+				var pos:Vector3 = res[0]
+				var nrm:Vector3 = res[1]
+				plg.convert_to_intersection_with_new_roadpoint(selection, pos, nrm)
 			else:
 				print("Not implemented")
 			return INPUT_STOP

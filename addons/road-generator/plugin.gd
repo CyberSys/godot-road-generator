@@ -1040,6 +1040,48 @@ func convert_to_intersection_with_new_branch(rp_init: RoadPoint, rp_branch: Road
 	undo_redo.commit_action()
 
 
+## Converts a RoadPoint into an intersection and creates a new RoadPoint at the click point as a branch
+func convert_to_intersection_with_new_roadpoint(rp_init: RoadPoint, pos: Vector3, nrm: Vector3) -> void:
+	var undo_redo = get_undo_redo()
+	
+	undo_redo.create_action("Create intersection and new RoadPoint")
+	
+	var rp := RoadPoint.new()
+	rp.name = rp.increment_name("RP_001")
+	undo_redo.add_do_method(rp_init.container, "add_child", rp, true)
+	undo_redo.add_do_method(rp, "set_owner", rp_init.owner)
+	
+	if nrm == Vector3.ZERO:
+		nrm = Vector3.UP
+	
+	var new_transform = rp_init.global_transform
+	new_transform.origin = pos
+	new_transform.basis.y = nrm
+	undo_redo.add_do_property(rp, "global_transform", new_transform)
+	undo_redo.add_do_method(rp, "look_at", rp_init.global_transform.origin, new_transform.basis.y)
+	undo_redo.add_do_property(rp, "global_transform.basis.y", new_transform.basis.y)
+	
+	undo_redo.add_do_reference(rp)
+	
+	var inter = subaction_create_intersection(rp_init, rp, undo_redo)
+	
+	undo_redo.add_undo_method(rp_init.container, "remove_child", rp)
+	undo_redo.add_undo_method(rp, "set_owner", null)
+	
+	undo_redo.add_do_method(rp_init.container, "rebuild_segments", false)
+	undo_redo.add_undo_method(rp_init.container, "rebuild_segments", false)
+	
+	undo_redo.add_do_method(self, "_call_update_edges", rp_init.container)
+	undo_redo.add_undo_method(self, "_call_update_edges", rp_init.container)
+	
+	var editor_selected:Array = _edi.get_selection().get_selected_nodes()
+	undo_redo.add_do_method(self, "set_selection", rp)
+	undo_redo.add_undo_method(self, "set_selection_list", editor_selected)
+	
+	undo_redo.commit_action()
+
+
+
 func add_and_connect_rp_to_intersection(inter: RoadIntersection, pos: Vector3, nrm: Vector3) -> void:
 	var undo_redo = get_undo_redo()
 	if not is_instance_valid(inter):
