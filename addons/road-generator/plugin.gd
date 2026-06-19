@@ -1546,6 +1546,7 @@ func subaction_delete_roadpoint(rp: RoadPoint, dissolve: bool, undo_redo:EditorU
 	var next_samedir: bool = true
 	var next_inter: RoadIntersection
 	
+	var undo_container_disconnect_args := []
 	if rp.prior_pt_init:
 		prior_graph = rp.get_node_or_null(rp.prior_pt_init)
 		if not is_instance_valid(prior_graph):
@@ -1565,7 +1566,16 @@ func subaction_delete_roadpoint(rp: RoadPoint, dissolve: bool, undo_redo:EditorU
 			push_warning("Should be prior connected %s" % prior_graph.name)
 			pass # not actually mutually connected?
 	else:
-		pass # TODO: check if cross-container selected, if so need to sever the edge
+		var cross_rp := rp.get_prior_road_node()
+		if not is_instance_valid(cross_rp) or not cross_rp is RoadPoint:
+			pass
+		elif cross_rp.container == rp.container: # Should be handled above
+			push_warning("Invalid state of RPs being in same container %s and %s" % [cross_rp, rp])
+		else:
+			var tgt_dir = RoadPoint.PointInit.NEXT if cross_rp.get_next_road_node() == rp else RoadPoint.PointInit.PRIOR
+			undo_redo.add_do_method(rp, "disconnect_container", RoadPoint.PointInit.PRIOR, tgt_dir)
+			undo_container_disconnect_args = [rp, "connect_container", RoadPoint.PointInit.PRIOR, cross_rp, tgt_dir]
+			undo_redo.add_do_method(self, "_call_update_edges", cross_rp.container)
 	
 	if rp.next_pt_init:
 		next_graph = rp.get_node_or_null(rp.next_pt_init)
@@ -1586,8 +1596,17 @@ func subaction_delete_roadpoint(rp: RoadPoint, dissolve: bool, undo_redo:EditorU
 			push_warning("Should be prior connected %s" % next_graph.name)
 			pass # not actually mutually connected?
 	else:
-		pass # TODO: check if cross-container selected, if so need to sever the edge
-	
+		var cross_rp := rp.get_next_road_node()
+		if not is_instance_valid(cross_rp) or not cross_rp is RoadPoint:
+			pass
+		elif cross_rp.container == rp.container: # Should be handled above
+			push_warning("Invalid state of RPs being in same container %s and %s" % [cross_rp, rp])
+		else:
+			print("Handling cross PRIOR")
+			var tgt_dir = RoadPoint.PointInit.NEXT if cross_rp.get_next_road_node() == rp else RoadPoint.PointInit.PRIOR
+			undo_redo.add_do_method(rp, "disconnect_container", RoadPoint.PointInit.NEXT, tgt_dir)
+			undo_container_disconnect_args = [rp, "connect_container", RoadPoint.PointInit.NEXT, cross_rp, tgt_dir]
+			undo_redo.add_do_method(self, "_call_update_edges", cross_rp.container)
 	
 	# Core removal
 	undo_redo.add_do_method(rp.get_parent(), "remove_child", rp)
@@ -1635,6 +1654,14 @@ func subaction_delete_roadpoint(rp: RoadPoint, dissolve: bool, undo_redo:EditorU
 		undo_redo.add_undo_property(_inter, "edge_points", _inter.edge_points.duplicate())
 		undo_redo.add_undo_property(_inter, "_is_internal_updating", false)
 		#undo_redo.add_undo_method(_inter, "add_branch", rp)
+	
+	# finally, re-do container connections
+	if undo_container_disconnect_args:
+		var args := undo_container_disconnect_args
+		var cross_rp: RoadPoint = args[3]
+		undo_redo.add_undo_method(self, "_call_update_edges", cross_rp.container)
+		undo_redo.add_undo_method(self, "_call_update_edges", rp.container)
+		undo_redo.add_undo_method(args[0], args[1], args[2], args[3], args[4])
 
 
 func subaction_delete_intersection(inter: RoadIntersection, undo_redo:EditorUndoRedoManager) -> void:
