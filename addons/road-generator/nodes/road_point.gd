@@ -946,7 +946,6 @@ func disconnect_roadpoint(this_direction: int, target_direction: int) -> bool:
 			self.prior_seg = null
 	self._is_internal_updating = false
 
-
 	disconnect_from._is_internal_updating = true
 	match target_direction:
 		PointInit.NEXT:
