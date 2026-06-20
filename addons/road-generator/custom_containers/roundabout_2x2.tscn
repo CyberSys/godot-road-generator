@@ -212,7 +212,7 @@ lane_prior_tag = "F1"
 curve = SubResource("Curve3D_15rct")
 script = ExtResource("4_h8c5r")
 lane_left = NodePath("../pF0_nF0-uturn")
-lane_right = NodePath("../pF1_nF1")
+lane_right = NodePath("../pF0_nF0")
 lane_next_tag = "F0"
 lane_prior_tag = "F0"
 
@@ -260,7 +260,7 @@ lane_prior_tag = "F1"
 curve = SubResource("Curve3D_h083d")
 script = ExtResource("4_h8c5r")
 lane_left = NodePath("../pF0_nF0-uturn")
-lane_right = NodePath("../pF1_nF1")
+lane_right = NodePath("../pF0_nF0")
 lane_next_tag = "F0"
 lane_prior_tag = "F0"
 
@@ -308,7 +308,7 @@ lane_prior_tag = "F1"
 curve = SubResource("Curve3D_g61lx")
 script = ExtResource("4_h8c5r")
 lane_left = NodePath("../pF0_nF0-uturn")
-lane_right = NodePath("../pF1_nF1")
+lane_right = NodePath("../pF0_nF0")
 lane_next_tag = "F0"
 lane_prior_tag = "F0"
 
@@ -356,7 +356,7 @@ lane_prior_tag = "F1"
 curve = SubResource("Curve3D_vqvfw")
 script = ExtResource("4_h8c5r")
 lane_left = NodePath("../pF0_nF0-uturn")
-lane_right = NodePath("../pF1_nF1")
+lane_right = NodePath("../pF0_nF0")
 lane_next_tag = "F0"
 lane_prior_tag = "F0"
 

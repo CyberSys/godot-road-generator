@@ -1040,6 +1040,48 @@ func convert_to_intersection_with_new_branch(rp_init: RoadPoint, rp_branch: Road
 	undo_redo.commit_action()
 
 
+## Converts a RoadPoint into an intersection and creates a new RoadPoint at the click point as a branch
+func convert_to_intersection_with_new_roadpoint(rp_init: RoadPoint, pos: Vector3, nrm: Vector3) -> void:
+	var undo_redo = get_undo_redo()
+	
+	undo_redo.create_action("Create intersection and new RoadPoint")
+	
+	var rp := RoadPoint.new()
+	rp.name = rp.increment_name("RP_001")
+	undo_redo.add_do_method(rp_init.container, "add_child", rp, true)
+	undo_redo.add_do_method(rp, "set_owner", rp_init.owner)
+	
+	if nrm == Vector3.ZERO:
+		nrm = Vector3.UP
+	
+	var new_transform = rp_init.global_transform
+	new_transform.origin = pos
+	new_transform.basis.y = nrm
+	undo_redo.add_do_property(rp, "global_transform", new_transform)
+	undo_redo.add_do_method(rp, "look_at", rp_init.global_transform.origin, new_transform.basis.y)
+	undo_redo.add_do_property(rp, "global_transform.basis.y", new_transform.basis.y)
+	
+	undo_redo.add_do_reference(rp)
+	
+	var inter = subaction_create_intersection(rp_init, rp, undo_redo)
+	
+	undo_redo.add_undo_method(rp_init.container, "remove_child", rp)
+	undo_redo.add_undo_method(rp, "set_owner", null)
+	
+	undo_redo.add_do_method(rp_init.container, "rebuild_segments", false)
+	undo_redo.add_undo_method(rp_init.container, "rebuild_segments", false)
+	
+	undo_redo.add_do_method(self, "_call_update_edges", rp_init.container)
+	undo_redo.add_undo_method(self, "_call_update_edges", rp_init.container)
+	
+	var editor_selected:Array = _edi.get_selection().get_selected_nodes()
+	undo_redo.add_do_method(self, "set_selection", rp)
+	undo_redo.add_undo_method(self, "set_selection_list", editor_selected)
+	
+	undo_redo.commit_action()
+
+
+
 func add_and_connect_rp_to_intersection(inter: RoadIntersection, pos: Vector3, nrm: Vector3) -> void:
 	var undo_redo = get_undo_redo()
 	if not is_instance_valid(inter):
@@ -1081,16 +1123,53 @@ func add_and_connect_rp_to_intersection(inter: RoadIntersection, pos: Vector3, n
 	undo_redo.commit_action()
 
 
+## Direclty connects if same container, or creates new intermediate RP if different
 func connect_rp_to_intersection(inter: RoadIntersection, rp: RoadPoint) -> void:
 	var undo_redo = get_undo_redo()
-	if inter.container != rp.container:
-		push_error("RoadIntersection and RoadPoint don't belong to the same RoadContainer")
-		return
-	
-	undo_redo.create_action("Connect RoadPoint to RoadIntersection")
-	subaction_add_branch(inter, rp, undo_redo)
-	undo_redo.add_do_method(self, "_call_update_edges", inter.container)
-	undo_redo.add_undo_method(self, "_call_update_edges", inter.container)
+	var same_cont := inter.container == rp.container
+
+	if same_cont:
+		undo_redo.create_action("Connect RoadPoint to RoadIntersection")
+		subaction_add_branch(inter, rp, undo_redo)
+		undo_redo.add_do_method(self, "_call_update_edges", inter.container)
+		undo_redo.add_undo_method(self, "_call_update_edges", inter.container)
+	else: # Insert new RP, cross-container connect, then crate the branch
+
+		# Determine which direction to use, for the cross-container connection
+		# replicates internal logic from RoadIntersection.add_branch
+		var dir_to_inter: Vector3 = inter.position - rp.position 
+		var is_fwd_facing:bool = (rp.global_basis.z.dot(dir_to_inter)) > 0
+		var rp_to_newrp_dir := rp.get_facing_open_dir(inter)
+		if rp_to_newrp_dir == RoadPoint.PointInit.NEITHER:
+			push_error("Can't connect RP to itnersection, intial RoadPoint %s already fully connected" % rp.name)
+			return
+		var newrp_to_rp_dir := RoadPoint.PointInit.PRIOR if rp_to_newrp_dir == RoadPoint.PointInit.NEXT else RoadPoint.PointInit.NEXT
+		
+		undo_redo.create_action("Connect RoadPoint to RoadIntersection with new cross-container RoadPoint")
+
+		var new_rp := RoadPoint.new()
+		new_rp.copy_settings_from(rp)
+		new_rp.name = new_rp.increment_name("RP_001")
+
+		undo_redo.add_do_method(inter.container, "add_child", new_rp, true)
+		undo_redo.add_do_method(new_rp, "set_owner", inter.container.owner)
+		undo_redo.add_do_property(new_rp, "global_transform", rp.global_transform)
+		undo_redo.add_do_reference(new_rp)
+		
+		# connect to original container/RP
+		undo_redo.add_do_method(self, "_call_update_edges", rp.container)
+		undo_redo.add_do_method(self, "_call_update_edges", inter.container)
+		undo_redo.add_do_method(rp, "connect_container", rp_to_newrp_dir, new_rp, newrp_to_rp_dir)
+
+		subaction_add_branch(inter, new_rp, undo_redo)
+		
+		undo_redo.add_undo_method(rp, "disconnect_container", rp_to_newrp_dir, newrp_to_rp_dir)
+
+		undo_redo.add_undo_method(inter.container, "remove_child", new_rp)
+		undo_redo.add_undo_method(new_rp, "set_owner", null)
+
+		undo_redo.add_undo_method(self, "_call_update_edges", rp.container)
+		undo_redo.add_undo_method(self, "_call_update_edges", inter.container)
 	
 	undo_redo.commit_action()
 
@@ -1452,13 +1531,15 @@ func subaction_create_intersection(source_rp: RoadPoint, rp_branch: RoadPoint, u
 	inter.name = "Intersection"
 	undo_redo.add_do_method(source_rp.get_parent(), "add_child", inter, true)
 	undo_redo.add_do_method(inter, "set_owner", source_rp.owner)
-	var target_transform: Transform3D = source_rp.global_transform
+	var target_transform: Transform3D = source_rp.transform
 	target_transform.basis = Basis.IDENTITY # Necesary as any rotation meses up generated mesh
-	undo_redo.add_do_property(inter, "global_transform", target_transform)
+	undo_redo.add_do_property(inter, "transform", target_transform)
 	
 	var prior_graph: RoadGraphNode
 	var prior_rp: RoadPoint
 	var prior_samedir: bool = true
+	var src_origin := source_rp.global_transform.origin
+	var src_up := source_rp.global_transform.basis.y
 	
 	var next_graph: RoadGraphNode
 	var next_rp: RoadPoint
@@ -1505,6 +1586,10 @@ func subaction_create_intersection(source_rp: RoadPoint, rp_branch: RoadPoint, u
 		if not is_instance_valid(_branch) or not _branch is RoadPoint:
 			continue
 		#subaction_add_branch(inter, _branch, undo_redo)
+		if not _branch.get_prior_road_node() and not _branch.get_next_road_node():
+			print("Auto rotate this RP: ", _branch.name)
+			undo_redo.add_do_method(_branch, "look_at", src_origin, src_up)
+			undo_redo.add_undo_property(_branch, "global_transform", _branch.global_transform)
 		undo_redo.add_do_method(inter, "add_branch", _branch)
 	undo_redo.add_do_reference(inter)
 	
@@ -1513,6 +1598,8 @@ func subaction_create_intersection(source_rp: RoadPoint, rp_branch: RoadPoint, u
 		if not is_instance_valid(_branch) or not _branch is RoadPoint:
 			continue
 		undo_redo.add_undo_method(inter, "remove_branch", _branch)
+		if not _branch.prior_pt_init and not _branch.next_pt_init:
+			print("Auto rotate this RP: ", _branch.name)
 	
 	undo_redo.add_undo_method(source_rp.get_parent(), "remove_child", inter)
 	undo_redo.add_undo_method(inter, "set_owner", null)
@@ -1546,6 +1633,7 @@ func subaction_delete_roadpoint(rp: RoadPoint, dissolve: bool, undo_redo:EditorU
 	var next_samedir: bool = true
 	var next_inter: RoadIntersection
 	
+	var undo_container_disconnect_args := []
 	if rp.prior_pt_init:
 		prior_graph = rp.get_node_or_null(rp.prior_pt_init)
 		if not is_instance_valid(prior_graph):
@@ -1565,7 +1653,16 @@ func subaction_delete_roadpoint(rp: RoadPoint, dissolve: bool, undo_redo:EditorU
 			push_warning("Should be prior connected %s" % prior_graph.name)
 			pass # not actually mutually connected?
 	else:
-		pass # TODO: check if cross-container selected, if so need to sever the edge
+		var cross_rp := rp.get_prior_road_node()
+		if not is_instance_valid(cross_rp) or not cross_rp is RoadPoint:
+			pass
+		elif cross_rp.container == rp.container: # Should be handled above
+			push_warning("Invalid state of RPs being in same container %s and %s" % [cross_rp, rp])
+		else:
+			var tgt_dir = RoadPoint.PointInit.NEXT if cross_rp.get_next_road_node() == rp else RoadPoint.PointInit.PRIOR
+			undo_redo.add_do_method(rp, "disconnect_container", RoadPoint.PointInit.PRIOR, tgt_dir)
+			undo_container_disconnect_args = [rp, "connect_container", RoadPoint.PointInit.PRIOR, cross_rp, tgt_dir]
+			undo_redo.add_do_method(self, "_call_update_edges", cross_rp.container)
 	
 	if rp.next_pt_init:
 		next_graph = rp.get_node_or_null(rp.next_pt_init)
@@ -1586,8 +1683,17 @@ func subaction_delete_roadpoint(rp: RoadPoint, dissolve: bool, undo_redo:EditorU
 			push_warning("Should be prior connected %s" % next_graph.name)
 			pass # not actually mutually connected?
 	else:
-		pass # TODO: check if cross-container selected, if so need to sever the edge
-	
+		var cross_rp := rp.get_next_road_node()
+		if not is_instance_valid(cross_rp) or not cross_rp is RoadPoint:
+			pass
+		elif cross_rp.container == rp.container: # Should be handled above
+			push_warning("Invalid state of RPs being in same container %s and %s" % [cross_rp, rp])
+		else:
+			print("Handling cross PRIOR")
+			var tgt_dir = RoadPoint.PointInit.NEXT if cross_rp.get_next_road_node() == rp else RoadPoint.PointInit.PRIOR
+			undo_redo.add_do_method(rp, "disconnect_container", RoadPoint.PointInit.NEXT, tgt_dir)
+			undo_container_disconnect_args = [rp, "connect_container", RoadPoint.PointInit.NEXT, cross_rp, tgt_dir]
+			undo_redo.add_do_method(self, "_call_update_edges", cross_rp.container)
 	
 	# Core removal
 	undo_redo.add_do_method(rp.get_parent(), "remove_child", rp)
@@ -1635,6 +1741,14 @@ func subaction_delete_roadpoint(rp: RoadPoint, dissolve: bool, undo_redo:EditorU
 		undo_redo.add_undo_property(_inter, "edge_points", _inter.edge_points.duplicate())
 		undo_redo.add_undo_property(_inter, "_is_internal_updating", false)
 		#undo_redo.add_undo_method(_inter, "add_branch", rp)
+	
+	# finally, re-do container connections
+	if undo_container_disconnect_args:
+		var args := undo_container_disconnect_args
+		var cross_rp: RoadPoint = args[3]
+		undo_redo.add_undo_method(self, "_call_update_edges", cross_rp.container)
+		undo_redo.add_undo_method(self, "_call_update_edges", rp.container)
+		undo_redo.add_undo_method(args[0], args[1], args[2], args[3], args[4])
 
 
 func subaction_delete_intersection(inter: RoadIntersection, undo_redo:EditorUndoRedoManager) -> void:
