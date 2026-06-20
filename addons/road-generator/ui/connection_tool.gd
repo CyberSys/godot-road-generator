@@ -771,7 +771,7 @@ func _handle_add_mode_input(camera: Camera3D, event: InputEvent) -> int:
 			hint_source_nodes.append(selection)
 			hint_source_points.append(camera.unproject_position(selection.global_transform.origin))
 			hinting = HintState.CREATE_RP
-		elif hover_roadnode is RoadPoint and selection is RoadPoint:
+		elif selection is RoadPoint and hover_roadnode is RoadPoint:
 			# TODO - extract into func handle_add_rp2rp?
 			# Connection context, but need to check if same container and if 
 			var rp_sel: RoadPoint = selection
@@ -808,24 +808,25 @@ func _handle_add_mode_input(camera: Camera3D, event: InputEvent) -> int:
 				_hint_intersection_creation(rp_hover, rp_sel, camera)
 			elif not rp_hover_filled and rp_sel_filled:
 				_hint_intersection_creation(rp_sel, rp_hover, camera)
-		elif hover_roadnode is RoadIntersection and selection is RoadPoint:
+		elif selection is RoadPoint and hover_roadnode is RoadIntersection:
 			if selection.is_prior_connected() and selection.is_next_connected():
-				# Fully connected
+				# Fully connected, potentially could offer to "merge" everything
+				# into one intersection
 				pass
 			else:
 				var inter: RoadIntersection = hover_roadnode
 				var rp: RoadPoint = selection
-				if inter.container == rp.container:
-					hint_source_nodes.append(rp)
-					hint_source_points.append(camera.unproject_position(rp.global_transform.origin))
-					hint_target_nodes.append(inter)
-					hint_target_points.append(camera.unproject_position(inter.global_transform.origin))
-					_insert_edge_hint(rp, camera)
-					if rp in inter.edge_points:
-						hinting = HintState.DISCONNECT
-					else:
-						hinting = HintState.CONNECT
-		elif hover_roadnode is RoadPoint and selection is RoadIntersection:
+				#if inter.container == rp.container:
+				hint_source_nodes.append(rp)
+				hint_source_points.append(camera.unproject_position(rp.global_transform.origin))
+				hint_target_nodes.append(inter)
+				hint_target_points.append(camera.unproject_position(inter.global_transform.origin))
+				_insert_edge_hint(rp, camera)
+				if rp in inter.edge_points:
+					hinting = HintState.DISCONNECT
+				else:
+					hinting = HintState.CONNECT
+		elif selection is RoadIntersection and hover_roadnode is RoadPoint:
 			var inter: RoadIntersection = selection
 			var rp: RoadPoint = hover_roadnode
 			if inter.container == rp.container:
@@ -838,6 +839,11 @@ func _handle_add_mode_input(camera: Camera3D, event: InputEvent) -> int:
 					hinting = HintState.DISCONNECT
 				else:
 					hinting = HintState.CONNECT
+		elif selection is RoadIntersection and hover_roadnode is RoadIntersection:
+			# In future, could offer to merge (if close) or create midpoints between,
+			# supporting a workflow of creating intersection points first and then
+			# connections between them later.
+			pass
 		
 		plg.update_overlays()
 	elif not event is InputEventMouseButton:

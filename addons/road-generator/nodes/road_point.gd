@@ -47,6 +47,7 @@ enum TrafficUpdate{
 enum PointInit {
 	NEXT,
 	PRIOR,
+	NEITHER # Used to indicate if a query or check failed, e.g. no open direction
 }
 
 enum Alignment {
@@ -481,6 +482,28 @@ func cross_container_connected() -> bool:
 	if is_instance_valid(_nt) and _nt.container != self.container:
 		return true
 	return false
+
+
+## Returns the best open facing direction from this RP to a target graph node
+##
+## This is reusable logic to identify the best facing direction to connect.
+func get_facing_open_dir(target: RoadGraphNode) -> PointInit:
+	var is_prior_connected = is_prior_connected()
+	var is_next_connected = is_next_connected()
+	if not is_prior_connected and not is_next_connected:
+		# Determine which direction to use.
+		var dir_to_target: Vector3 = target.global_position - global_position 
+		var is_fwd_facing:bool = (global_basis.z.dot(dir_to_target)) > 0
+		if is_fwd_facing:
+			return PointInit.NEXT
+		else:
+			return PointInit.PRIOR
+	elif is_prior_connected:
+		return PointInit.NEXT
+	elif is_next_connected:
+		return PointInit.PRIOR
+	else:
+		return PointInit.NEITHER
 
 
 ## Indicates whether this direction is connected, accounting for container connections

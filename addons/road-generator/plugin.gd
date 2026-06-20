@@ -1123,16 +1123,53 @@ func add_and_connect_rp_to_intersection(inter: RoadIntersection, pos: Vector3, n
 	undo_redo.commit_action()
 
 
+## Direclty connects if same container, or creates new intermediate RP if different
 func connect_rp_to_intersection(inter: RoadIntersection, rp: RoadPoint) -> void:
 	var undo_redo = get_undo_redo()
-	if inter.container != rp.container:
-		push_error("RoadIntersection and RoadPoint don't belong to the same RoadContainer")
-		return
-	
-	undo_redo.create_action("Connect RoadPoint to RoadIntersection")
-	subaction_add_branch(inter, rp, undo_redo)
-	undo_redo.add_do_method(self, "_call_update_edges", inter.container)
-	undo_redo.add_undo_method(self, "_call_update_edges", inter.container)
+	var same_cont := inter.container == rp.container
+
+	if same_cont:
+		undo_redo.create_action("Connect RoadPoint to RoadIntersection")
+		subaction_add_branch(inter, rp, undo_redo)
+		undo_redo.add_do_method(self, "_call_update_edges", inter.container)
+		undo_redo.add_undo_method(self, "_call_update_edges", inter.container)
+	else: # Insert new RP, cross-container connect, then crate the branch
+
+		# Determine which direction to use, for the cross-container connection
+		# replicates internal logic from RoadIntersection.add_branch
+		var dir_to_inter: Vector3 = inter.position - rp.position 
+		var is_fwd_facing:bool = (rp.global_basis.z.dot(dir_to_inter)) > 0
+		var rp_to_newrp_dir := rp.get_facing_open_dir(inter)
+		if rp_to_newrp_dir == RoadPoint.PointInit.NEITHER:
+			push_error("Can't connect RP to itnersection, intial RoadPoint %s already fully connected" % rp.name)
+			return
+		var newrp_to_rp_dir := RoadPoint.PointInit.PRIOR if rp_to_newrp_dir == RoadPoint.PointInit.NEXT else RoadPoint.PointInit.NEXT
+		
+		undo_redo.create_action("Connect RoadPoint to RoadIntersection with new cross-container RoadPoint")
+
+		var new_rp := RoadPoint.new()
+		new_rp.copy_settings_from(rp)
+		new_rp.name = new_rp.increment_name("RP_001")
+
+		undo_redo.add_do_method(inter.container, "add_child", new_rp, true)
+		undo_redo.add_do_method(new_rp, "set_owner", inter.container.owner)
+		undo_redo.add_do_property(new_rp, "global_transform", rp.global_transform)
+		undo_redo.add_do_reference(new_rp)
+		
+		# connect to original container/RP
+		undo_redo.add_do_method(self, "_call_update_edges", rp.container)
+		undo_redo.add_do_method(self, "_call_update_edges", inter.container)
+		undo_redo.add_do_method(rp, "connect_container", rp_to_newrp_dir, new_rp, newrp_to_rp_dir)
+
+		subaction_add_branch(inter, new_rp, undo_redo)
+		
+		undo_redo.add_undo_method(rp, "disconnect_container", rp_to_newrp_dir, newrp_to_rp_dir)
+
+		undo_redo.add_undo_method(inter.container, "remove_child", new_rp)
+		undo_redo.add_undo_method(new_rp, "set_owner", null)
+
+		undo_redo.add_undo_method(self, "_call_update_edges", rp.container)
+		undo_redo.add_undo_method(self, "_call_update_edges", inter.container)
 	
 	undo_redo.commit_action()
 
