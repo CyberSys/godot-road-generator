@@ -1531,9 +1531,9 @@ func subaction_create_intersection(source_rp: RoadPoint, rp_branch: RoadPoint, u
 	inter.name = "Intersection"
 	undo_redo.add_do_method(source_rp.get_parent(), "add_child", inter, true)
 	undo_redo.add_do_method(inter, "set_owner", source_rp.owner)
-	var target_transform: Transform3D = source_rp.global_transform
+	var target_transform: Transform3D = source_rp.transform
 	target_transform.basis = Basis.IDENTITY # Necesary as any rotation meses up generated mesh
-	undo_redo.add_do_property(inter, "global_transform", target_transform)
+	undo_redo.add_do_property(inter, "transform", target_transform)
 	
 	var prior_graph: RoadGraphNode
 	var prior_rp: RoadPoint
