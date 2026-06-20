@@ -312,14 +312,12 @@ func nearest_graphnode_from_raycast(intersect: Dictionary) -> RoadGraphNode:
 	elif collider.name.begins_with("intersection_mesh_col"):
 		var intersection: RoadIntersection = collider.get_parent().get_parent()
 		
-		# Identify if any of the intersection edges are open and close to
-		# the hover pos, such that we should connet to that point instead.
+		# Identify if any intersection edges are close to the cursor click pos
+		# to allow for direct (dis)connection downstream
 		var open_rps: Array[RoadPoint] = []
 		var closest_rp: RoadPoint
 		var closest_dist := -1.0
 		for _rp in intersection.edge_points:
-			if _rp.is_prior_connected() and _rp.is_next_connected():
-				continue
 			var compare_radius = _rp.lane_width * _rp.lanes.size() / 2.0
 			compare_radius *= compare_radius
 			var compare_dist := _rp.global_position.distance_squared_to(position)
@@ -329,7 +327,6 @@ func nearest_graphnode_from_raycast(intersect: Dictionary) -> RoadGraphNode:
 				closest_dist = compare_dist
 				closest_rp = _rp
 		if is_instance_valid(closest_rp):
-			# If the hover point is very close to a RoadPoint, consider it as the hover instead
 			return closest_rp
 		return intersection
 	else:
