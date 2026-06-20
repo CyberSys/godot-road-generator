@@ -41,7 +41,7 @@ const white_col = Color(1, 1, 1, 0.9) ## Outline color
 const rad_size := 10.0 ## Connector dot radius
 
 var plg:EditorPlugin
-var snap_threshold := 25.0 ## Threshold for snapping distance of nodes in the scene
+var snap_threshold := 25.0 ## Threshold for snapping distance in meters of nodes in the scene
 var snapping: int = SnapState.IDLE ## Current state of snapping
 var pre_snap_trans: Array[Transform3D] = []
 
@@ -311,6 +311,26 @@ func nearest_graphnode_from_raycast(intersect: Dictionary) -> RoadGraphNode:
 		return nearest_point
 	elif collider.name.begins_with("intersection_mesh_col"):
 		var intersection: RoadIntersection = collider.get_parent().get_parent()
+		
+		# Identify if any of the intersection edges are open and close to
+		# the hover pos, such that we should connet to that point instead.
+		var open_rps: Array[RoadPoint] = []
+		var closest_rp: RoadPoint
+		var closest_dist := -1.0
+		for _rp in intersection.edge_points:
+			if _rp.is_prior_connected() and _rp.is_next_connected():
+				continue
+			var compare_radius = _rp.lane_width * _rp.lanes.size() / 2.0
+			compare_radius *= compare_radius
+			var compare_dist := _rp.global_position.distance_squared_to(position)
+			if compare_dist > compare_radius:
+				continue
+			if closest_dist < 0 or compare_dist < closest_dist:
+				closest_dist = compare_dist
+				closest_rp = _rp
+		if is_instance_valid(closest_rp):
+			# If the hover point is very close to a RoadPoint, consider it as the hover instead
+			return closest_rp
 		return intersection
 	else:
 		# Might be a custom RoadContainer.
@@ -816,7 +836,6 @@ func _handle_add_mode_input(camera: Camera3D, event: InputEvent) -> int:
 			else:
 				var inter: RoadIntersection = hover_roadnode
 				var rp: RoadPoint = selection
-				#if inter.container == rp.container:
 				hint_source_nodes.append(rp)
 				hint_source_points.append(camera.unproject_position(rp.global_transform.origin))
 				hint_target_nodes.append(inter)
