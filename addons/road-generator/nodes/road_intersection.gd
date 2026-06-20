@@ -175,21 +175,12 @@ func add_branch(road_point: RoadPoint) -> void:
 	edge_points.append(road_point)
 	_sort_edges_clockwise()
 	
-	# Identify the closest facing opene egde of the intersection.
-	var is_prior_connected = road_point.is_prior_connected()
-	var is_next_connected = road_point.is_next_connected()
+	# Pick the closest facing open egde of this RoadPoint to connect
+	var open_dir := road_point.get_facing_open_dir(self)
 	road_point._is_internal_updating = true
-	if not is_prior_connected and not is_next_connected:
-		# Determine which direction to use.
-		var dir_to_inter: Vector3 = self.position - road_point.position 
-		var is_fwd_facing:bool = (road_point.global_basis.z.dot(dir_to_inter)) > 0
-		if is_fwd_facing:
-			road_point.next_pt_init = road_point.get_path_to(self)
-		else:
-			road_point.prior_pt_init = road_point.get_path_to(self)
-	elif is_prior_connected: # TODO: shoudl do if fwd or next prior connected, accounting for cross dirs
+	if open_dir == RoadPoint.PointInit.NEXT:
 		road_point.next_pt_init = road_point.get_path_to(self)
-	elif is_next_connected:
+	elif open_dir == RoadPoint.PointInit.PRIOR:
 		road_point.prior_pt_init = road_point.get_path_to(self)
 	else:
 		push_error("Cannot connect RoadPoint %s already fully connected" % road_point.name)
